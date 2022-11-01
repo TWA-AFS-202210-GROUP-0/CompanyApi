@@ -11,6 +11,7 @@ namespace CompanyApi.Controllers
     public class CompanyController : ControllerBase
     {
         private static List<Company> companies = new List<Company>();
+        private static List<Employee> employees = new List<Employee>();
 
         [HttpPost]
         public ActionResult<Company> CreateCompany([FromBody] Company company)
@@ -101,6 +102,7 @@ namespace CompanyApi.Controllers
                     curCompany.EmployeeIDs = new List<string> { employee.EmployeeID };
                 }
 
+                employees.Add(employee);
                 return Ok(curCompany);
             }
             catch (Exception e)
@@ -110,12 +112,12 @@ namespace CompanyApi.Controllers
         }
 
         [HttpGet("{Id}/all/employee")]
-        public ActionResult<Company> GetAllEmployeeUnderACompany([FromRoute] string id)
+        public ActionResult<List<Employee>> GetAllEmployeeUnderACompany([FromRoute] string id)
         {
             try
             {
                 var res = companies.Single(c => c.Id.Equals(id));
-                return Ok(res.EmployeeIDs);
+                return Ok(employees.Where(e => e.CompanyId.Equals(id)));
             }
             catch (Exception e)
             {

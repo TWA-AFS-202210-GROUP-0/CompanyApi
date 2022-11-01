@@ -155,13 +155,18 @@ namespace CompanyApiTest.Controllers
             _ = await httpClient.PutAsJsonAsync($"companies/{company.Id}", company);
             _ = await httpClient.PutAsJsonAsync($"companies/{company.Id}/employee/", new Employee("wxt1"));
             _ = await httpClient.PutAsJsonAsync($"companies/{company.Id}/employee/", new Employee("wxt2"));
-            // when
 
+            var createResponse2 = await httpClient.PostAsJsonAsync("companies", new Company("slb2"));
+            var company2 = JsonConvert.DeserializeObject<Company>(await createResponse2.Content.ReadAsStringAsync());
+            _ = await httpClient.PutAsJsonAsync($"companies/{company2.Id}", company2);
+            _ = await httpClient.PutAsJsonAsync($"companies/{company2.Id}/employee/", new Employee("wxt3"));
+            _ = await httpClient.PutAsJsonAsync($"companies/{company2.Id}/employee/", new Employee("wxt4"));
+            // when
             var getResponse = await httpClient.GetAsync($"companies/{company.Id}/all/employee");
             var responseString = await getResponse.Content.ReadAsStringAsync();
-            var employeeIds = JsonConvert.DeserializeObject<List<string>>(responseString);
+            var employees = JsonConvert.DeserializeObject<List<Employee>>(responseString);
             // then
-            Assert.Equal(2, employeeIds.Count);
+            Assert.Equal(2, employees.Count);
         }
     }
 }
