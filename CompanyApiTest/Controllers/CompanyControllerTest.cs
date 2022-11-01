@@ -208,6 +208,24 @@ namespace CompanyApiTest.Controllers
             Assert.Equal("Meng", createEmployeeResult.Name);
         }
 
+        [Fact]
+        public async void Should_get_employee_list()
+        {
+            //Given
+            var httpClient = SetUpEnviroment();
+            var createdCompanyResult = await CreateCompanyForTest(httpClient);
+            var meng = await CreateEmployeeForTest(httpClient, createdCompanyResult, "Meng");
+            var yanxi = await CreateEmployeeForTest(httpClient, createdCompanyResult, "Yanxi");
+            //When
+            //When
+            var getResponse = await httpClient.GetAsync($"companies/{createdCompanyResult.CompanyId}/employees");
+            //Then
+            getResponse.EnsureSuccessStatusCode();
+            var getResult = await ParseRespone<List<EmployeeDto>>(getResponse);
+            Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+            Assert.Equal(2, getResult.Count);
+        }
+
 
         public HttpClient SetUpEnviroment()
         {
@@ -241,6 +259,21 @@ namespace CompanyApiTest.Controllers
             createResponse.EnsureSuccessStatusCode();
             var result = await ParseRespone<CompanyDto>(createResponse);
             return result;
+        }
+
+        private async Task<EmployeeDto> CreateEmployeeForTest(HttpClient httpClient, CompanyDto createdCompanyResult, string name)
+        {
+            //When
+            var newEmployee = new EmployeeDto()
+            {
+                Name = name,
+                Salary = 1000,
+            };
+            var createRequest = BuildRequest(newEmployee);
+            var createResponse =
+                await httpClient.PostAsync($"companies/{createdCompanyResult.CompanyId}/employees/", createRequest);
+            var createEmployeeResult = await ParseRespone<EmployeeDto>(createResponse);
+            return createEmployeeResult;
         }
     }
 }

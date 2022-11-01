@@ -110,5 +110,17 @@ namespace CompanyApi.Controllers
 
             return new CreatedResult($"/companies/{companyByFind.CompanyId}/employees/{newEmployee.EmployeeId}", newEmployee.ToDto());
         }
+
+        [HttpGet("{companyId}/employees/")]
+        public ActionResult<List<EmployeeDto>> GetEmployees([FromRoute] string companyId)
+        {
+            var companyByFind = companies.Find(e => e.CompanyId == companyId);
+            if (companyByFind == null)
+            {
+                return new NotFoundResult();
+            }
+
+            return Ok(companyByFind.Employees.Select(e => e.ToDto()).ToList());
+        }
     }
 }
