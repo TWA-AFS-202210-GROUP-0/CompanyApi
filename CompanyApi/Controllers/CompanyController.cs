@@ -29,6 +29,15 @@ namespace CompanyApi.Controllers
             //throw new CompanyException("the company has existed!");
         }
 
+        [HttpPost("companies/{id}/employees")]
+        public ActionResult<Employee> AddNewEmployee([FromRoute] string id, [FromBody] Employee employee)
+        {
+            var company = companies.Find(cmp => cmp.CompanyId == id);
+            employee.EmployeeId = Guid.NewGuid().ToString();
+            company.Employees.Add(employee);
+            return new CreatedResult($"/companies/{id}/employees/{employee.EmployeeId}", employee);
+        }
+
         [HttpGet("companies/{id}")]
         public Company GetOneCompany([FromRoute] string id)
         {
