@@ -101,5 +101,18 @@ namespace CompanyApiTest.Controllers
             Company gotCompany = await DeserializeResponse<Company>(response);
             Assert.Equal(gotCompany.Name, company.Name);
         }
+
+        [Fact]
+        public async Task Should_return_not_found_when_search_for_not_existing_company()
+        {
+            // given
+            var httpClient = CreateHttpClient();
+
+            // when
+            var response = await httpClient.GetAsync($"/companies/hi");
+
+            // then
+            Assert.Equal(System.Net.HttpStatusCode.NotFound, response.StatusCode);
+        }
     }
 }
