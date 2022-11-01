@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -33,6 +34,31 @@ namespace CompanyApiTest.Controllers
         }
 
         [Fact]
+        public async void Should_get_all_companies_from_system_successfully()
+        {
+            // given
+            var application = new WebApplicationFactory<Program>();
+            var httpClient = application.CreateClient();
+            await httpClient.DeleteAsync("/companies");
+            var company1 = new Company(name: "SLB");
+            StringContent company1Body = BuildRequestBody(company1);
+            var company2 = new Company(name: "TW");
+            StringContent company2Body = BuildRequestBody(company2);
+            await httpClient.PostAsync("/companies", company1Body);
+            await httpClient.PostAsync("/companies", company2Body);
+
+            // when
+            var response = await httpClient.GetAsync("/companies");
+
+            // then
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var companiesList = JsonConvert.DeserializeObject<List<Company>>(responseBody);
+            Assert.Equal(company1.Name, companiesList[0].Name);
+            Assert.Equal(company2.Name, companiesList[1].Name);
+        }
+
+        [Fact]
         public async void Should_return_conflict_when_add_new_company_again()
         {
             // given
@@ -47,6 +73,29 @@ namespace CompanyApiTest.Controllers
 
             // then
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        }
+
+        [Fact]
+        public async void Should_get_existing_company_successfully()
+        {
+            // given
+            var application = new WebApplicationFactory<Program>();
+            var httpClient = application.CreateClient();
+            await httpClient.DeleteAsync("/companies");
+            var newCompany = new Company(name: "SLB");
+            StringContent postBody = BuildRequestBody(newCompany);
+
+            // when
+            var createdResponse = await httpClient.PostAsync("/companies", postBody);
+            var createdBody = await createdResponse.Content.ReadAsStringAsync();
+            var createdCompany = JsonConvert.DeserializeObject<Company>(createdBody);
+            var getResponse = await httpClient.GetAsync($"/companies/{createdCompany.CompanyID}");
+
+            // then
+            Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+            var responseBody = await getResponse.Content.ReadAsStringAsync();
+            var getCompany = JsonConvert.DeserializeObject<Company>(responseBody);
+            Assert.Equal("SLB", getCompany.Name);
         }
 
         public static StringContent BuildRequestBody(Company newCompany)
