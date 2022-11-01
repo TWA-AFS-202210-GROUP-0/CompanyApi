@@ -158,5 +158,34 @@ namespace CompanyApiTest.Controllers
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal("Schlumberger", cmp.Name);
         }
+
+        [Fact]
+        public async void Should_add_new_employee_for_a_company_given_company()
+        {
+            // given
+            var application = new WebApplicationFactory<Program>();
+            var httpClient = application.CreateClient();
+            var company = new Company(name: "SLB");
+            var person = new Employee("Ming", 2000);
+
+            var serializedCompany = JsonConvert.SerializeObject(company);
+            var postBody = new StringContent(serializedCompany, Encoding.UTF8, "application/json");
+
+            var serializedPerson = JsonConvert.SerializeObject(person);
+            var postBodyPerson = new StringContent(serializedPerson, Encoding.UTF8, "application/json");
+            // when
+            await httpClient.DeleteAsync("api/companies");
+            var responsePostSLB = await httpClient.PostAsync("api/companies", postBody);
+            var responseSLBBody = await responsePostSLB.Content.ReadAsStringAsync();
+            var cmpSLB = JsonConvert.DeserializeObject<Company>(responseSLBBody);
+            var response = await httpClient.PostAsync($"api/companies/{cmpSLB.CompanyId}/employees", postBodyPerson);
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var createdPerson = JsonConvert.DeserializeObject<Employee>(responseBody);
+            //then
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            Assert.Equal(person, createdPerson);
+            Assert.NotEmpty(createdPerson.EmployeeId);
+        }
     }
 }
