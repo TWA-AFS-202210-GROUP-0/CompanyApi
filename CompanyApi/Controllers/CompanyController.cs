@@ -108,5 +108,19 @@ namespace CompanyApi.Controllers
                 return NotFound(e.Message);
             }
         }
+
+        [HttpGet("{Id}/all/employee")]
+        public ActionResult<Company> GetAllEmployeeUnderACompany([FromRoute] string id)
+        {
+            try
+            {
+                var res = companies.Single(c => c.Id.Equals(id));
+                return Ok(res.EmployeeIDs);
+            }
+            catch (Exception e)
+            {
+                return NotFound(e.Message);
+            }
+        }
     }
 }

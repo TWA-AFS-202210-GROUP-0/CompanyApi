@@ -144,5 +144,24 @@ namespace CompanyApiTest.Controllers
             Assert.Single(responseCompany.EmployeeIDs);
             Assert.Equal(employee.EmployeeID, responseCompany.EmployeeIDs[0]);
         }
+
+        [Fact]
+        public async Task Should_get_all_employee_under_a_specific_company()
+        {
+            // given
+            var httpClient = await GetHttpClientAsync();
+            var createResponse = await httpClient.PostAsJsonAsync("companies", new Company("slb"));
+            var company = JsonConvert.DeserializeObject<Company>(await createResponse.Content.ReadAsStringAsync());
+            _ = await httpClient.PutAsJsonAsync($"companies/{company.Id}", company);
+            _ = await httpClient.PutAsJsonAsync($"companies/{company.Id}/employee/", new Employee("wxt1"));
+            _ = await httpClient.PutAsJsonAsync($"companies/{company.Id}/employee/", new Employee("wxt2"));
+            // when
+
+            var getResponse = await httpClient.GetAsync($"companies/{company.Id}/all/employee");
+            var responseString = await getResponse.Content.ReadAsStringAsync();
+            var employeeIds = JsonConvert.DeserializeObject<List<string>>(responseString);
+            // then
+            Assert.Equal(2, employeeIds.Count);
+        }
     }
 }
