@@ -205,6 +205,37 @@ namespace CompanyApiTest.Controllers
             Assert.Equal(employee.Name, updatedCompanies[0].Employees[0].Name);
         }
 
+        [Fact]
+        public async Task Should_get_all_employees_in_a_company_successfully()
+        {
+            //given
+            var application = new WebApplicationFactory<Program>();
+            var httpClient = application.CreateClient();
+            await httpClient.DeleteAsync("/companies");
+            var newCompany = new Company(name: "SLB");
+            StringContent postBody = BuildRequestBody(newCompany);
+            var createdResponse = await httpClient.PostAsync("/companies", postBody);
+            var createdBody = await createdResponse.Content.ReadAsStringAsync();
+            var createdCompany = JsonConvert.DeserializeObject<Company>(createdBody);
+            var employee1 = new Employee(name: "Li Ming", salary: 10000);
+            StringContent employeeBody1 = BuildRequestBodyForEmployee(employee1);
+            await httpClient.PostAsync($"/companies/{createdCompany.CompanyID}/employees",
+                employeeBody1);
+            var employee2 = new Employee(name: "Li Hua", salary: 10000);
+            StringContent employeeBody2 = BuildRequestBodyForEmployee(employee2);
+            await httpClient.PostAsync($"/companies/{createdCompany.CompanyID}/employees",
+                employeeBody2);
+
+            //when
+            var response = await httpClient.GetAsync($"/companies/{createdCompany.CompanyID}/employees");
+
+            //then
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var employees = JsonConvert.DeserializeObject<List<Employee>>(responseBody);
+            Assert.Equal(2, employees.Count);
+        }
+
         public static StringContent BuildRequestBody(Company newCompany)
         {
             var companyJson = JsonConvert.SerializeObject(newCompany);

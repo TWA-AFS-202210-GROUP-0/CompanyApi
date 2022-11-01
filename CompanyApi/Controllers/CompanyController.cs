@@ -73,9 +73,14 @@ namespace CompanyApi.Controllers
         public ActionResult<Employee> AddNewEmployee([FromRoute] string companyID, Employee employee)
         {
             employee.EmployeeID = Guid.NewGuid().ToString();
-            Company company = companies.Find(_ => _.CompanyID.Equals(companyID));
-            company.Employees.Add(employee);
+            companies.Find(_ => _.CompanyID.Equals(companyID)).Employees.Add(employee);
             return Ok(employee);
+        }
+
+        [HttpGet("{companyID}/employees")]
+        public ActionResult<List<Employee>> GetAllEmployees([FromRoute] string companyID)
+        {
+            return Ok(companies.Find(_ => _.CompanyID.Equals(companyID)).Employees);
         }
 
     }
