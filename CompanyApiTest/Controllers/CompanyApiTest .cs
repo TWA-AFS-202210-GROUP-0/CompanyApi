@@ -159,6 +159,55 @@ namespace CompanyApiTest.Controllers
             Assert.Equal("Schlumberger", cmp.Name);
         }
 
+
+        [Fact]
+        public async void Should_delete_one_company_and_its_employees_successfully()
+        {
+            // given
+            var application = new WebApplicationFactory<Program>();
+            var httpClient = application.CreateClient();
+
+            var companyOne = new Company(name: "SLB");
+            var companyTwo = new Company(name: "Thoughtworks");
+
+            var serializedCompanyOne = JsonConvert.SerializeObject(companyOne);
+            var postBodyOne = new StringContent(serializedCompanyOne, Encoding.UTF8, "application/json");
+
+            var serializedCompanyTwo = JsonConvert.SerializeObject(companyTwo);
+            var postBodyTwo = new StringContent(serializedCompanyTwo, Encoding.UTF8, "application/json");
+
+            var personOne = new Employee("Ming", 2000);
+            var personTwo = new Employee("Hei", 1000);
+
+            var serializedEmployeeOne = JsonConvert.SerializeObject(personOne);
+            var postBodyPersonOne = new StringContent(serializedEmployeeOne, Encoding.UTF8, "application/json");
+
+            var serializedEmployeeTwo = JsonConvert.SerializeObject(personTwo);
+            var postBodyPersonTwo = new StringContent(serializedEmployeeTwo, Encoding.UTF8, "application/json");
+            // when
+            await httpClient.DeleteAsync("api/companies");
+
+            var responseGetSLB = await httpClient.PostAsync("api/companies", postBodyOne);
+            await httpClient.PostAsync("api/companies", postBodyTwo);
+            var responseSLBBody = await responseGetSLB.Content.ReadAsStringAsync();
+            var cmpSLB = JsonConvert.DeserializeObject<Company>(responseSLBBody);
+
+            await httpClient.PostAsync($"api/companies/{cmpSLB.CompanyId}/employees", postBodyPersonOne);
+            await httpClient.PostAsync($"api/companies/{cmpSLB.CompanyId}/employees", postBodyPersonTwo);
+
+            var response = await httpClient.DeleteAsync($"api/companies/{cmpSLB.CompanyId}");
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var cmps = JsonConvert.DeserializeObject<List<Company>>(responseBody);
+
+            var responseEmp = await httpClient.GetAsync($"api/companies/{cmpSLB.CompanyId}/employees");
+            //then
+            response.EnsureSuccessStatusCode();
+            Assert.Equal(HttpStatusCode.NoContent, responseEmp.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(1, cmps.Count);
+        }
+
+
         [Fact]
         public async void Should_add_new_employee_for_a_company_given_company()
         {
