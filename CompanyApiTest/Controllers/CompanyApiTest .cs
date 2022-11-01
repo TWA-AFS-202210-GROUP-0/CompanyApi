@@ -233,7 +233,7 @@ namespace CompanyApiTest.Controllers
             var postBodyOne = new StringContent(serializedCompanyOne, Encoding.UTF8, "application/json");
 
             var personOne = new Employee("Ming", 2000);
-            var personOneMd = new Employee("Ming", 1500);
+            var personOneMd = new Employee("Mwwwg", 1500);
             var personTwo = new Employee("Hei", 1000);
 
             var serializedEmployeeOne = JsonConvert.SerializeObject(personOne);

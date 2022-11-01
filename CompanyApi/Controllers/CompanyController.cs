@@ -66,6 +66,16 @@ namespace CompanyApi.Controllers
             return cmp;
         }
 
+        [HttpPut("companies/{cmpid}/employees/{empid}")]
+        public Employee UpdateOneEmployee([FromRoute] string cmpid, [FromRoute] string empid, [FromBody] Employee employee)
+        {
+            var cmp = companies.Find(cmp => cmp.CompanyId == cmpid);
+            var emp = cmp.Employees.Find(person => person.EmployeeId == empid);
+            emp = employee;
+            return emp;
+        }
+
+
         [HttpGet("companies")]
         public List<Company> GetSeveralCompaniesFromOnePage([FromQuery] int? pageIndex, [FromQuery] int? pageSize)
         {
