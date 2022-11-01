@@ -20,6 +20,10 @@ namespace CompanyApiTest.Controllers
             return client;
         }
 
+        public void AddCompanyAndEmployee()
+        {
+        }
+
         [Fact]
         public async Task Should_create_company()
         {
@@ -187,6 +191,29 @@ namespace CompanyApiTest.Controllers
             var responseString = await getResponse.Content.ReadAsStringAsync();
             var employees = JsonConvert.DeserializeObject<List<Employee>>(responseString);
             // then
+            Assert.Equal("wxt2", employees[0].Name);
+        }
+
+        [Fact]
+        public async Task Should_delete_specific_employee_under_a_specific_company()
+        {
+            // given
+            var httpClient = await GetHttpClientAsync();
+            var createResponse = await httpClient.PostAsJsonAsync("companies", new Company("slb"));
+            var company = JsonConvert.DeserializeObject<Company>(await createResponse.Content.ReadAsStringAsync());
+            _ = await httpClient.PutAsJsonAsync($"companies/{company.Id}", company);
+            var employee = new Employee("wxt");
+            _ = await httpClient.PostAsJsonAsync($"companies/{company.Id}/employee/", employee);
+            _ = await httpClient.PostAsJsonAsync($"companies/{company.Id}/employee/", new Employee("wxt2"));
+
+            _ = await httpClient.DeleteAsync($"companies/{company.Id}/employee/{employee.EmployeeID}");
+
+            // when
+            var getResponse = await httpClient.GetAsync($"companies/{company.Id}/all/employee");
+            var responseString = await getResponse.Content.ReadAsStringAsync();
+            var employees = JsonConvert.DeserializeObject<List<Employee>>(responseString);
+            // then
+            Assert.Single(employees);
             Assert.Equal("wxt2", employees[0].Name);
         }
     }
