@@ -59,12 +59,6 @@ namespace CompanyApi.Controllers
             return Ok(currentCompany);
         }
 
-        //[HttpPut]
-        //public ActionResult<Company> Put(Company updateCompany)
-        //{
-        //    return updateCompany;
-        //}
-
         [HttpDelete]
         public void DeleteAllPets()
         {
