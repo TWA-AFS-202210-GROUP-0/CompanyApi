@@ -35,6 +35,14 @@ namespace CompanyApi.Controllers
             return companies.Find(cmp => cmp.CompanyId == id);
         }
 
+        [HttpPut("companies/{id}")]
+        public Company UpdateOneCompany([FromRoute] string id, [FromBody] Company company)
+        {
+            var cmp = companies.Find(cmp => cmp.CompanyId == id);
+            cmp.Name = company.Name;
+            return cmp;
+        }
+
         [HttpGet("companies")]
         public List<Company> GetSeveralCompaniesFromOnePage([FromQuery] int? pageIndex, [FromQuery] int? pageSize)
         {

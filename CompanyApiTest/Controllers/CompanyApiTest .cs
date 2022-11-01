@@ -154,6 +154,7 @@ namespace CompanyApiTest.Controllers
             var responseBody = await response.Content.ReadAsStringAsync();
             var cmp = JsonConvert.DeserializeObject<Company>(responseBody);
             // then
+            response.EnsureSuccessStatusCode();
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal("Schlumberger", cmp.Name);
         }
