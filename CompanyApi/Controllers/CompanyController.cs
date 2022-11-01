@@ -31,6 +31,12 @@ namespace CompanyApi.Controllers
             return companies;
         }
 
+        [HttpGet("{id}")]
+        public Company GetCompanyById([FromRoute] string id)
+        {
+            return companies.Find(_ => _.CompanyID == id);
+        }
+
         [HttpDelete]
         public void DeleteAllPets()
         {

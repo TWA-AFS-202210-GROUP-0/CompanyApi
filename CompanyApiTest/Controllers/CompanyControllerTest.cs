@@ -67,6 +67,31 @@ namespace CompanyApiTest.Controllers
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
+        [Fact]
+        public async Task Should_get_company_by_id_successfully()
+        {
+            // given
+            var application = new WebApplicationFactory<Program>();
+            var httpClient = application.CreateClient();
+            await httpClient.DeleteAsync("/companies");
+            var slb = new Company(name: "SLB");
+            var postBodySlb = BuildRequestBody(slb);
+            await httpClient.PostAsync("/companies", postBodySlb);
+            var tw = new Company(name: "TW");
+            var postBodyTw = BuildRequestBody(tw);
+            var responseForId = await httpClient.PostAsync("/companies", postBodyTw);
+            var responseBodyExcepted = await responseForId.Content.ReadAsStringAsync();
+            var responseExcepted = JsonConvert.DeserializeObject<Company>(responseBodyExcepted);
+            string exceptedcompanyId = responseExcepted.CompanyID;
+            // when
+            var response = await httpClient.GetAsync($"/companies/{exceptedcompanyId}");
+            // then
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var responseActual = JsonConvert.DeserializeObject<List<Company>>(responseBody);
+            Assert.Equal("SLB", responseActual[0].Name);
+        }
+
         private static StringContent BuildRequestBody(Company company)
         {
             company = new Company(name: "SLB");
