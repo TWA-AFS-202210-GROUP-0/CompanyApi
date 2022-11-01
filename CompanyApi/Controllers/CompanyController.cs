@@ -45,6 +45,13 @@ namespace CompanyApi.Controllers
             }
         }
 
+        [HttpGet("companies/{id}/employees")]
+        public List<Employee> GetAllEmployee([FromRoute] string id)
+        {
+            var company = companies.Find(cmp => cmp.CompanyId == id);
+            return company.Employees;
+        }
+
         [HttpGet("companies/{id}")]
         public Company GetOneCompany([FromRoute] string id)
         {

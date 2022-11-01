@@ -213,9 +213,7 @@ namespace CompanyApiTest.Controllers
 
             await httpClient.PostAsync($"api/companies/{cmpSLB.CompanyId}/employees", postBodyPersonOne);
             await httpClient.PostAsync($"api/companies/{cmpSLB.CompanyId}/employees", postBodyPersonTwo);
-
-
-            var response = await httpClient.GetAsync("api/companies/{cmpSLB.CompanyId}/employees");
+            var response = await httpClient.GetAsync($"api/companies/{cmpSLB.CompanyId}/employees");
             var responseBody = await response.Content.ReadAsStringAsync();
             var emploeyees = JsonConvert.DeserializeObject<List<Employee>>(responseBody);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
