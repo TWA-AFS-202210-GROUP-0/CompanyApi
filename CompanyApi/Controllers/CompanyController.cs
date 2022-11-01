@@ -45,6 +45,28 @@ namespace CompanyApi.Controllers
             }
         }
 
+        [HttpGet("companies")]
+        public List<Company> GetSeveralCompaniesFromOnePage([FromQuery] int? pageIndex, [FromQuery] int? pageSize)
+        {
+            if (pageIndex != null && pageSize != null)
+            {
+                int lower = (pageIndex.Value - 1) * pageSize.Value;
+                int upper = lower + pageSize.Value;
+                if (upper <= companies.Count)
+                {
+                    return companies.Skip(lower).Take(pageSize.Value).ToList();
+                }
+                else
+                {
+                    return companies.Skip(lower).Take(pageSize.Value - upper + companies.Count).ToList();
+                }
+            }
+            else
+            {
+                return companies;
+            }
+        }
+
         [HttpGet("companies/{id}/employees")]
         public ActionResult<List<Employee>> GetAllEmployee([FromRoute] string id)
         {
@@ -95,28 +117,6 @@ namespace CompanyApi.Controllers
         {
             var cmp = companies.Find(cmp => cmp.CompanyId == cmpid);
             companies.Remove(cmp);
-        }
-
-        [HttpGet("companies")]
-        public List<Company> GetSeveralCompaniesFromOnePage([FromQuery] int? pageIndex, [FromQuery] int? pageSize)
-        {
-            if (pageIndex != null && pageSize != null)
-            {
-                int lower = (pageIndex.Value - 1) * pageSize.Value;
-                int upper = lower + pageSize.Value;
-                if (upper <= companies.Count)
-                {
-                    return companies.Skip(lower).Take(pageSize.Value).ToList();
-                }
-                else
-                {
-                    return companies.Skip(lower).Take(pageSize.Value - upper + companies.Count).ToList();
-                }
-            }
-            else
-            {
-                return companies;
-            }
         }
 
         [HttpDelete("companies")]
