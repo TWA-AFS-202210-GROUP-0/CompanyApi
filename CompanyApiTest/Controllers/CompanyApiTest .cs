@@ -73,5 +73,29 @@ namespace CompanyApiTest.Controllers
             Assert.Equal(companyOne, companies[0]);
             Assert.Equal(companyTwo, companies[1]);
         }
+
+        [Fact]
+        public async void Should_get_specific_existing_company_successfully()
+        {
+            // given
+            var application = new WebApplicationFactory<Program>();
+            var httpClient = application.CreateClient();
+            var companyOne = new Company(name: "SLB");
+            var companyTwo = new Company(name: "Thoughtworks");
+            var serializedCompanyOne = JsonConvert.SerializeObject(companyOne);
+            var postBodyOne = new StringContent(serializedCompanyOne, Encoding.UTF8, "application/json");
+            var serializedCompanyTwo = JsonConvert.SerializeObject(companyTwo);
+            var postBodyTwo = new StringContent(serializedCompanyTwo, Encoding.UTF8, "application/json");
+            // when
+            await httpClient.DeleteAsync("api/deletAllCompanies");
+            await httpClient.PostAsync("api/companies", postBodyOne);
+            await httpClient.PostAsync("api/companies", postBodyTwo);
+            var response = await httpClient.GetAsync("api/getOneCmp?name=SLB");
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var cmp = JsonConvert.DeserializeObject<Company>(responseBody);
+            // then
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(companyOne, cmp);
+        }
     }
 }
