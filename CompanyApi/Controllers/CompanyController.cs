@@ -29,7 +29,24 @@ namespace CompanyApi.Controllers
         [HttpDelete("all")]
         public void DeleteCompanies()
         {
+            companies.ForEach((c) => employees.RemoveAll(e => e.CompanyId.Equals(c.Id)));
             companies.Clear();
+        }
+
+        [HttpDelete("{Id}")]
+        public ActionResult<List<Company>> DeleteCompanyById([FromRoute] string id)
+        {
+            try
+            {
+                var company = companies.Single(c => c.Id.Equals(id));
+                employees.RemoveAll(e => e.CompanyId.Equals(company?.Id));
+                companies.RemoveAll(c => c.Id.Equals(id));
+                return Ok(companies);
+            }
+            catch (Exception e)
+            {
+                return NotFound(e.Message);
+            }
         }
 
         [HttpGet("all")]
@@ -169,6 +186,12 @@ namespace CompanyApi.Controllers
             {
                 return NotFound(e.Message);
             }
+        }
+
+        [HttpGet("all/employee")]
+        public ActionResult<List<Employee>> GetAllEmployee()
+        {
+            return Ok(employees);
         }
     }
 }
