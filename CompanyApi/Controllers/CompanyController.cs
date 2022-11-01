@@ -66,5 +66,22 @@ namespace CompanyApi.Controllers
                 return BadRequest(e.Message);
             }
         }
+
+        [HttpPut]
+        [Route("{Id}")]
+        public ActionResult<Company> UpdateCompany([FromRoute] string id, [FromBody] Company company)
+        {
+            try
+            {
+                var curCompany = companies.Single(c => c.Id.Equals(id));
+                curCompany.Name = company.Name;
+                curCompany.Id = company.Id;
+                return Ok(curCompany);
+            }
+            catch (Exception e)
+            {
+                return NotFound(e.Message);
+            }
+        }
     }
 }

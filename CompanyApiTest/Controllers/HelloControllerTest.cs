@@ -107,5 +107,22 @@ namespace CompanyApiTest.Controllers
             Assert.Equal("slb", companies[0].Name);
             Assert.Equal("slb1", companies[1].Name);
         }
+
+        [Fact]
+        public async Task Should_udpate_company()
+        {
+            // given
+            var httpClient = await GetHttpClientAsync();
+            var createResponse = await httpClient.PostAsJsonAsync("companies", new Company("slb"));
+            var company = JsonConvert.DeserializeObject<Company>(await createResponse.Content.ReadAsStringAsync());
+            company.Name = "slb2";
+            _ = await httpClient.PutAsJsonAsync($"companies/{company.Id}", company);
+            // when
+            var getResponse = await httpClient.GetAsync($"companies/{company.Id}");
+            var responseString = await getResponse.Content.ReadAsStringAsync();
+            var responseCompany = JsonConvert.DeserializeObject<Company>(responseString);
+            // then
+            Assert.Equal("slb2", responseCompany.Name);
+        }
     }
 }
