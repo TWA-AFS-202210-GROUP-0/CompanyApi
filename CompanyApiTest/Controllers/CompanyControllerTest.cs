@@ -222,5 +222,20 @@ namespace CompanyApiTest.Controllers
             var updatedEmployee = await DeserializeResponse<Employee>(response);
             Assert.Equal(employee.Salary, updatedEmployee.Salary);
         }
+
+        [Fact]
+        public async Task Should_delete_employee_for_a_company_sucessfully()
+        {
+            // given
+            var httpClient = CreateHttpClient();
+            var comp1 = await AddCompany(httpClient, "comp1");
+            var employee = await AddEmployee(httpClient, "Yanxi", 1, comp1.Id);
+
+            // when
+            var response = await httpClient.DeleteAsync($"/companies/{comp1.Id}/employees/{employee.Id}");
+
+            // then
+            response.EnsureSuccessStatusCode();
+        }
     }
 }

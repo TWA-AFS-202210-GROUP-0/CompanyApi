@@ -78,5 +78,15 @@ namespace CompanyApi.Controllers
             employee = newEmployee;
             return employee;
         }
+
+        [HttpDelete("{companyId}/employees/{employeeId}")]
+        public ActionResult DeleteEmployee([FromRoute] string companyId, [FromRoute] string employeeId)
+        {
+            var employees = companies.FirstOrDefault(comp => comp.Id.Equals(companyId))?.Employees;
+            var employee = employees.FirstOrDefault(employee => employee.Id.Equals(employeeId));
+            if (employee == null) { return Conflict(); }
+            employees.Remove(employee);
+            return Ok();
+        }
     }
 }
