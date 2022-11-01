@@ -195,16 +195,17 @@ namespace CompanyApiTest.Controllers
             await httpClient.PostAsync($"api/companies/{cmpSLB.CompanyId}/employees", postBodyPersonOne);
             await httpClient.PostAsync($"api/companies/{cmpSLB.CompanyId}/employees", postBodyPersonTwo);
 
-            var response = await httpClient.DeleteAsync($"api/companies/{cmpSLB.CompanyId}");
+            await httpClient.DeleteAsync($"api/companies/{cmpSLB.CompanyId}");
+            var response = await httpClient.GetAsync("api/companies");
             var responseBody = await response.Content.ReadAsStringAsync();
-            var cmps = JsonConvert.DeserializeObject<List<Company>>(responseBody);
+            var companies = JsonConvert.DeserializeObject<List<Company>>(responseBody);
 
             var responseEmp = await httpClient.GetAsync($"api/companies/{cmpSLB.CompanyId}/employees");
             //then
             response.EnsureSuccessStatusCode();
             Assert.Equal(HttpStatusCode.NoContent, responseEmp.StatusCode);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal(1, cmps.Count);
+            Assert.Equal(1, companies.Count);
         }
 
 

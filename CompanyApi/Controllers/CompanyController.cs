@@ -48,9 +48,9 @@ namespace CompanyApi.Controllers
         [HttpGet("companies/{id}/employees")]
         public ActionResult<List<Employee>> GetAllEmployee([FromRoute] string id)
         {
-            if (id != null)
+            var company = companies.Find(cmp => cmp.CompanyId == id);
+            if (company != null)
             {
-                var company = companies.Find(cmp => cmp.CompanyId == id);
                 return company.Employees;
             }
             else
@@ -88,6 +88,13 @@ namespace CompanyApi.Controllers
             var cmp = companies.Find(cmp => cmp.CompanyId == cmpid);
             var emp = cmp.Employees.Find(person => person.EmployeeId == empid);
             cmp.Employees.Remove(emp);
+        }
+
+        [HttpDelete("companies/{cmpid}")]
+        public void DeletOneEmployee([FromRoute] string cmpid)
+        {
+            var cmp = companies.Find(cmp => cmp.CompanyId == cmpid);
+            companies.Remove(cmp);
         }
 
         [HttpGet("companies")]
