@@ -288,9 +288,11 @@ namespace CompanyApiTest.Controllers
 
             await httpClient.PostAsync($"api/companies/{cmpSLB.CompanyId}/employees", postBodyPersonTwo);
             await httpClient.DeleteAsync($"api/companies/{cmpSLB.CompanyId}/employees/{empOne.EmployeeId}");
-            var response = await httpClient.GetAsync($"api/companies/{cmpSLB.CompanyId}/employees/{empOne.EmployeeId}");
+            var response = await httpClient.GetAsync($"api/companies/{cmpSLB.CompanyId}/employees");
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var employees = JsonConvert.DeserializeObject<List<Employee>>(responseBody);
             //Then
-            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+            Assert.Equal(1, employees.Count);
         }
     }
 }

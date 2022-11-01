@@ -75,6 +75,13 @@ namespace CompanyApi.Controllers
             return emp;
         }
 
+        [HttpDelete("companies/{cmpid}/employees/{empid}")]
+        public void DeletOneEmployee([FromRoute] string cmpid, [FromRoute] string empid)
+        {
+            var cmp = companies.Find(cmp => cmp.CompanyId == cmpid);
+            var emp = cmp.Employees.Find(person => person.EmployeeId == empid);
+            cmp.Employees.Remove(emp);
+        }
 
         [HttpGet("companies")]
         public List<Company> GetSeveralCompaniesFromOnePage([FromQuery] int? pageIndex, [FromQuery] int? pageSize)
