@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
@@ -15,7 +16,7 @@ namespace CompanyApiTest.Controllers
         {
             var application = new WebApplicationFactory<Program>();
             var client = application.CreateClient();
-            _ = await client.DeleteAsync("companies/deleteAllCompanies");
+            _ = await client.DeleteAsync("companies/all");
             return client;
         }
 
@@ -49,6 +50,23 @@ namespace CompanyApiTest.Controllers
 
             // then
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task Should_get_all_companies()
+        {
+            // given
+            var httpClient = await GetHttpClientAsync();
+            _ = await httpClient.PostAsJsonAsync("companies", new Company("slb"));
+            _ = await httpClient.PostAsJsonAsync("companies", new Company("slb1"));
+
+            // when
+            var response = await httpClient.GetAsync("companies/all");
+            var responseString = await response.Content.ReadAsStringAsync();
+            var companies = JsonConvert.DeserializeObject<List<Company>>(responseString);
+            // then
+            Assert.Equal(2, companies.Count);
+
         }
     }
 }

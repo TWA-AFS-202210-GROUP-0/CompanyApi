@@ -23,10 +23,16 @@ namespace CompanyApi.Controllers
             return new CreatedResult("companies/{company.Id}", company);
         }
 
-        [HttpDelete("deleteAllCompanies")]
+        [HttpDelete("all")]
         public void DeleteCompanies()
         {
             companies.Clear();
+        }
+
+        [HttpGet("all")]
+        public List<Company> GetAllCompanies()
+        {
+            return companies;
         }
     }
 }
