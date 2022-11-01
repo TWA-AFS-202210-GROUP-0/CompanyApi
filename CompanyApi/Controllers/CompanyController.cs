@@ -56,6 +56,15 @@ namespace CompanyApi.Controllers
             return originalCompany;
         }
 
+        [HttpDelete("{id}")]
+        public ActionResult DeleteCompany([FromRoute] string id)
+        {
+            var company = companies.FirstOrDefault(comp => comp.Id.Equals(id));
+            if (company == null) { return NotFound(); }
+            companies.Remove(company);
+            return Ok();
+        }
+
         [HttpPost("{id}/employees")]
         public ActionResult<Employee> AddEmployee([FromRoute] string id, Employee employee)
         {
@@ -67,7 +76,9 @@ namespace CompanyApi.Controllers
         [HttpGet("{id}/employees")]
         public ActionResult<List<Employee>> GetEmployees([FromRoute] string id)
         {
-            return companies.FirstOrDefault(comp => comp.Id.Equals(id))?.Employees;
+            var company = companies.FirstOrDefault(comp => comp.Id.Equals(id));
+            if (company == null) { return NotFound(); }
+            return company.Employees;
         }
 
         [HttpPut("{companyId}/employees/{employeeId}")]

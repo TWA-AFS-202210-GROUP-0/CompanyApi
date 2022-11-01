@@ -237,5 +237,26 @@ namespace CompanyApiTest.Controllers
             // then
             response.EnsureSuccessStatusCode();
         }
+
+        [Fact]
+        public async Task Should_delete_a_company_and_its_employees_sucessfully()
+        {
+            // given
+            var httpClient = CreateHttpClient();
+            var comp1 = await AddCompany(httpClient, "comp1");
+            var employee1 = await AddEmployee(httpClient, "Yanxi", 1, comp1.Id);
+            var employee2 = await AddEmployee(httpClient, "Yaomeng", 1, comp1.Id);
+
+            // when
+            var response = await httpClient.DeleteAsync($"/companies/{comp1.Id}");
+
+            // then
+            response.EnsureSuccessStatusCode();
+            var getCompany = await httpClient.GetAsync($"/companies/{comp1.Id}");
+            Assert.Equal(System.Net.HttpStatusCode.NotFound, getCompany.StatusCode);
+            var getEmployees = await httpClient.GetAsync($"/companies/{comp1.Id}/employees");
+            Assert.Equal(System.Net.HttpStatusCode.NotFound, getEmployees.StatusCode);
+        }
+
     }
 }
