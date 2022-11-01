@@ -41,7 +41,15 @@ namespace CompanyApi.Controllers
             if (pageIndex != null && pageSize != null)
             {
                 int lower = (pageIndex.Value - 1) * pageSize.Value;
-                return companies.Skip(lower).Take(pageSize.Value).ToList();
+                int upper = lower + pageSize.Value;
+                if (upper <= companies.Count)
+                {
+                    return companies.Skip(lower).Take(pageSize.Value).ToList();
+                }
+                else
+                {
+                    return companies.Skip(lower).Take(pageSize.Value - upper + companies.Count).ToList();
+                }
             }
             else
             {
@@ -54,6 +62,5 @@ namespace CompanyApi.Controllers
         {
             companies.Clear();
         }
-
     }
 }

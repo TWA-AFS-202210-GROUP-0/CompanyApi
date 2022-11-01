@@ -124,5 +124,38 @@ namespace CompanyApiTest.Controllers
            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
            Assert.Equal(companyTwo, cmp[0]);
         }
+
+        [Fact]
+        public async void Should_update_basic_info_company_successfully()
+        {
+            // given
+            var application = new WebApplicationFactory<Program>();
+            var httpClient = application.CreateClient();
+
+            var companyOne = new Company(name: "SLB");
+            var companyOneMd = new Company(name: "Schlumberger");
+            var companyTwo = new Company(name: "Thoughtworks");
+
+            var serializedCompanyOne = JsonConvert.SerializeObject(companyOne);
+            var postBodyOne = new StringContent(serializedCompanyOne, Encoding.UTF8, "application/json");
+
+            var serializedCompanyOneMd = JsonConvert.SerializeObject(companyOneMd);
+            var postBodyOneMd = new StringContent(serializedCompanyOneMd, Encoding.UTF8, "application/json");
+
+            var serializedCompanyTwo = JsonConvert.SerializeObject(companyTwo);
+            var postBodyTwo = new StringContent(serializedCompanyTwo, Encoding.UTF8, "application/json");
+            // when
+            await httpClient.DeleteAsync("api/companies");
+            var responseGetSLB = await httpClient.PostAsync("api/companies", postBodyOne);
+            await httpClient.PostAsync("api/companies", postBodyTwo);
+            var responseSLBBody = await responseGetSLB.Content.ReadAsStringAsync();
+            var cmpSLB = JsonConvert.DeserializeObject<Company>(responseSLBBody);
+            var response = await httpClient.PutAsync($"api/companies/{cmpSLB.CompanyId}", postBodyOneMd);
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var cmp = JsonConvert.DeserializeObject<Company>(responseBody);
+            // then
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("Schlumberger", cmp.Name);
+        }
     }
 }
