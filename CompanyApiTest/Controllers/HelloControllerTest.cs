@@ -83,5 +83,29 @@ namespace CompanyApiTest.Controllers
             // then
             Assert.Equal(responseCompany, company);
         }
+
+        [Fact]
+        public async Task Should_get_X_page_companies()
+        {
+            // given
+            var httpClient = await GetHttpClientAsync();
+            _ = await httpClient.PostAsJsonAsync("companies", new Company("slb"));
+            _ = await httpClient.PostAsJsonAsync("companies", new Company("slb1"));
+            _ = await httpClient.PostAsJsonAsync("companies", new Company("slb2"));
+            _ = await httpClient.PostAsJsonAsync("companies", new Company("slb3"));
+            _ = await httpClient.PostAsJsonAsync("companies", new Company("slb4"));
+            _ = await httpClient.PostAsJsonAsync("companies", new Company("slb5"));
+            _ = await httpClient.PostAsJsonAsync("companies", new Company("slb7"));
+            _ = await httpClient.PostAsJsonAsync("companies", new Company("slb8"));
+
+            // when
+            var response = await httpClient.GetAsync("companies?pageSize=2&pageIndex=1");
+            var responseString = await response.Content.ReadAsStringAsync();
+            var companies = JsonConvert.DeserializeObject<List<Company>>(responseString);
+            // then
+            Assert.Equal(2, companies.Count);
+            Assert.Equal("slb", companies[0].Name);
+            Assert.Equal("slb1", companies[1].Name);
+        }
     }
 }

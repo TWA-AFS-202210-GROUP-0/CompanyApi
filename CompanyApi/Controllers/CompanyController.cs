@@ -51,5 +51,20 @@ namespace CompanyApi.Controllers
                 return NotFound(e.Message);
             }
         }
+
+        [HttpGet]
+        public ActionResult<List<Company>> GetCompaniesByPageIndexAndPageSize([FromQuery] string pageSize, [FromQuery] string pageIndex)
+        {
+            try
+            {
+                int pageSizeInt = Convert.ToInt32(pageSize);
+                int pageIndexInt = Convert.ToInt32(pageIndex);
+                return companies.Skip(pageSizeInt * (pageIndexInt - 1)).Take(pageSizeInt).ToList();
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
     }
 }
