@@ -236,6 +236,37 @@ namespace CompanyApiTest.Controllers
             Assert.Equal(2, employees.Count);
         }
 
+        [Fact]
+        public async Task Should_update_an_employee_information_in_a_company_successfully()
+        {
+            //given
+            var application = new WebApplicationFactory<Program>();
+            var httpClient = application.CreateClient();
+            await httpClient.DeleteAsync("/companies");
+            var newCompany = new Company(name: "SLB");
+            StringContent postBody = BuildRequestBody(newCompany);
+            var createdResponse = await httpClient.PostAsync("/companies", postBody);
+            var createdBody = await createdResponse.Content.ReadAsStringAsync();
+            var createdCompany = JsonConvert.DeserializeObject<Company>(createdBody);
+            var employee = new Employee(name: "Li Ming", salary: 10000);
+            StringContent employeeBody = BuildRequestBodyForEmployee(employee);
+            var response = await httpClient.PostAsync($"/companies/{createdCompany.CompanyID}/employees",
+                employeeBody);
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var updateEmployee = JsonConvert.DeserializeObject<Employee>(responseBody);
+            updateEmployee.Salary = 20000;
+            StringContent updateBody = BuildRequestBodyForEmployee(updateEmployee);
+
+            //when
+            var updatedResponse = await httpClient.PutAsync($"/companies/{createdCompany.CompanyID}/employees/{updateEmployee.EmployeeID}", updateBody);
+
+            //then
+            Assert.Equal(HttpStatusCode.OK, updatedResponse.StatusCode);
+            var updatedBody = await updatedResponse.Content.ReadAsStringAsync();
+            var updatedEmployee = JsonConvert.DeserializeObject<Employee>(updatedBody);
+            Assert.Equal(updateEmployee.Salary, updatedEmployee.Salary);
+        }
+
         public static StringContent BuildRequestBody(Company newCompany)
         {
             var companyJson = JsonConvert.SerializeObject(newCompany);

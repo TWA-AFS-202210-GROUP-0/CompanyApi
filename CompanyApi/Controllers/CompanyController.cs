@@ -52,14 +52,14 @@ namespace CompanyApi.Controllers
         [HttpPut("{updateCompany.CompanyID}")]
         public ActionResult<Company> ModifyCompanyName(Company updateCompany)
         {
-            var currentCompany = companies.Find(_ => _.CompanyID == updateCompany.CompanyID);
-            if (currentCompany == null)
+            var targetCompany = companies.Find(_ => _.CompanyID.Equals(updateCompany.CompanyID));
+            if (targetCompany == null)
             {
                 return NotFound();
             }
 
-            currentCompany.Name = updateCompany.Name;
-            return Ok(currentCompany);
+            targetCompany.Name = updateCompany.Name;
+            return Ok(targetCompany);
         }
 
         [HttpDelete]
@@ -81,6 +81,21 @@ namespace CompanyApi.Controllers
         public ActionResult<List<Employee>> GetAllEmployees([FromRoute] string companyID)
         {
             return Ok(companies.Find(_ => _.CompanyID.Equals(companyID)).Employees);
+        }
+
+        [HttpPut("{CompanyID}/employees/{updateEmployee.EmployeeID}")]
+        public ActionResult<Company> ModifyEmployeeInformation([FromRoute] string companyID, Employee updateEmployee)
+        {
+            var company = companies.Find(_ => _.CompanyID.Equals(companyID));
+            var targetEmployee = company.Employees.Find(_ => _.EmployeeID.Equals(updateEmployee.EmployeeID));
+            if (targetEmployee == null)
+            {
+                return NotFound();
+            }
+
+            targetEmployee.Name = updateEmployee.Name;
+            targetEmployee.Salary = updateEmployee.Salary;
+            return Ok(targetEmployee);
         }
 
     }
