@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace CompanyApi
 {
@@ -11,6 +12,8 @@ namespace CompanyApi
 
         public string Name { get; set; }
         public string? Id { get; set; }
+
+        public List<string>? EmployeeIDs { get; set; }
 
         public override bool Equals(object? obj)
         {

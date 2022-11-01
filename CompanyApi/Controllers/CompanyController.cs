@@ -75,7 +75,32 @@ namespace CompanyApi.Controllers
             {
                 var curCompany = companies.Single(c => c.Id.Equals(id));
                 curCompany.Name = company.Name;
-                curCompany.Id = company.Id;
+
+                return Ok(curCompany);
+            }
+            catch (Exception e)
+            {
+                return NotFound(e.Message);
+            }
+        }
+
+        [HttpPut("{Id}/employee")]
+        public ActionResult<Company> AddEmployee([FromRoute] string id, [FromBody] Employee employee)
+        {
+            try
+            {
+                var curCompany = companies.Single(c => c.Id.Equals(id));
+                employee.CompanyId = curCompany.Id;
+                var employeeIds = curCompany.EmployeeIDs;
+                if (employeeIds?.Count > 0)
+                {
+                    employeeIds.Add(employee.EmployeeID);
+                }
+                else
+                {
+                    curCompany.EmployeeIDs = new List<string> { employee.EmployeeID };
+                }
+
                 return Ok(curCompany);
             }
             catch (Exception e)
