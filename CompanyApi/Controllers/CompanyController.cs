@@ -33,9 +33,16 @@ namespace CompanyApi.Controllers
         public ActionResult<Employee> AddNewEmployee([FromRoute] string id, [FromBody] Employee employee)
         {
             var company = companies.Find(cmp => cmp.CompanyId == id);
-            employee.EmployeeId = Guid.NewGuid().ToString();
-            company.Employees.Add(employee);
-            return new CreatedResult($"/companies/{id}/employees/{employee.EmployeeId}", employee);
+            if (company != null)
+            {
+                employee.EmployeeId = Guid.NewGuid().ToString();
+                company.Employees.Add(employee);
+                return new CreatedResult($"/companies/{id}/employees/{employee.EmployeeId}", employee);
+            }
+            else
+            {
+                return new NotFoundResult();
+            }
         }
 
         [HttpGet("companies/{id}")]
