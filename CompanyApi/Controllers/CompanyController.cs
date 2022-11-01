@@ -22,8 +22,15 @@ namespace CompanyApi.Controllers
         }
 
         [HttpGet]
-        public ActionResult<List<Company>> GetCompanies()
+        public ActionResult<List<Company>> GetCompanies([FromQuery] int? pageSize, [FromQuery] int? pageIndex)
         {
+            if (pageIndex != null && pageSize != null)
+            {
+                int start = (int)((pageIndex - 1) * pageSize);
+                int end = (int)((start + pageSize) > companies.Count ? companies.Count : (start + pageSize));
+                return companies.GetRange(start, end);
+            }
+
             return companies;
         }
 

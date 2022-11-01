@@ -30,6 +30,15 @@ namespace CompanyApiTest.Controllers
             return JsonConvert.DeserializeObject<T>(responseBody);
         }
 
+        public async Task<Company> AddCompany(HttpClient httpClient, string companyName)
+        {
+            var company = new Company(companyName);
+            var requestBody = CreateRequestBody(company);
+            var response = await httpClient.PostAsync("/companies", requestBody);
+            Company createdCompany = await DeserializeResponse<Company>(response);
+            return createdCompany;
+        }
+
         [Fact]
         public async Task Should_add_company_sucessfully()
         {
@@ -69,9 +78,7 @@ namespace CompanyApiTest.Controllers
         {
             // given
             var httpClient = CreateHttpClient();
-            var company = new Company("Mengyao");
-            var requestBody = CreateRequestBody(company);
-            await httpClient.PostAsync("/companies", requestBody);
+            var company = await AddCompany(httpClient, "Mengyao");
 
             // when
             var response = await httpClient.GetAsync("/companies");
@@ -88,13 +95,10 @@ namespace CompanyApiTest.Controllers
         {
             // given
             var httpClient = CreateHttpClient();
-            var company = new Company("Mengyao");
-            var requestBody = CreateRequestBody(company);
-            var addedResponse = await httpClient.PostAsync("/companies", requestBody);
-            Company createdCompany = await DeserializeResponse<Company>(addedResponse);
+            var company = await AddCompany(httpClient, "Mengyao");
 
             // when
-            var response = await httpClient.GetAsync($"/companies/{createdCompany.Id}");
+            var response = await httpClient.GetAsync($"/companies/{company.Id}");
 
             // then
             response.EnsureSuccessStatusCode();
@@ -113,6 +117,26 @@ namespace CompanyApiTest.Controllers
 
             // then
             Assert.Equal(System.Net.HttpStatusCode.NotFound, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task Should_get_companies_from_a_specific_page()
+        {
+            // given
+            var httpClient = CreateHttpClient();
+            var comp1 = await AddCompany(httpClient, "comp1");
+            var comp2 = await AddCompany(httpClient, "comp2");
+            var comp3 = await AddCompany(httpClient, "comp3");
+
+            // when
+            var response = await httpClient.GetAsync("/companies?pageSize=2&pageIndex=1");
+
+            // then
+            response.EnsureSuccessStatusCode();
+            var companies = await DeserializeResponse<List<Company>>(response);
+            Assert.Equal(2, companies.Count);
+            Assert.Equal(comp1.Name, companies[0].Name);
+            Assert.Equal(comp2.Name, companies[1].Name);
         }
     }
 }
