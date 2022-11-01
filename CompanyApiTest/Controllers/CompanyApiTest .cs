@@ -215,11 +215,50 @@ namespace CompanyApiTest.Controllers
             await httpClient.PostAsync($"api/companies/{cmpSLB.CompanyId}/employees", postBodyPersonTwo);
             var response = await httpClient.GetAsync($"api/companies/{cmpSLB.CompanyId}/employees");
             var responseBody = await response.Content.ReadAsStringAsync();
-            var emploeyees = JsonConvert.DeserializeObject<List<Employee>>(responseBody);
+            var employees = JsonConvert.DeserializeObject<List<Employee>>(responseBody);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal(2, emploeyees.Count);
-            Assert.Equal(personOne, emploeyees[0]);
-            Assert.Equal(personTwo, emploeyees[1]);
+            Assert.Equal(2, employees.Count);
+            Assert.Equal(personOne, employees[0]);
+            Assert.Equal(personTwo, employees[1]);
+        }
+
+        [Fact]
+        public async void Should_update_basic_info_of_one_employee_successfully()
+        {
+            // given
+            var application = new WebApplicationFactory<Program>();
+            var httpClient = application.CreateClient();
+            var companyOne = new Company(name: "SLB");
+            var serializedCompanyOne = JsonConvert.SerializeObject(companyOne);
+            var postBodyOne = new StringContent(serializedCompanyOne, Encoding.UTF8, "application/json");
+
+            var personOne = new Employee("Ming", 2000);
+            var personOneMd = new Employee("Ming", 1500);
+            var personTwo = new Employee("Hei", 1000);
+
+            var serializedEmployeeOne = JsonConvert.SerializeObject(personOne);
+            var postBodyPersonOne = new StringContent(serializedEmployeeOne, Encoding.UTF8, "application/json");
+
+            var serializedEmployeeOneMd = JsonConvert.SerializeObject(personOneMd);
+            var postBodyPersonOneMd = new StringContent(serializedEmployeeOneMd, Encoding.UTF8, "application/json");
+
+            var serializedEmployeeTwo = JsonConvert.SerializeObject(personTwo);
+            var postBodyPersonTwo = new StringContent(serializedEmployeeTwo, Encoding.UTF8, "application/json");
+            // when
+            await httpClient.DeleteAsync("api/companies");
+            var responsePostSLB = await httpClient.PostAsync("api/companies", postBodyOne);
+            var responseSLBBody = await responsePostSLB.Content.ReadAsStringAsync();
+            var cmpSLB = JsonConvert.DeserializeObject<Company>(responseSLBBody);
+            var responsePersonOne = await httpClient.PostAsync($"api/companies/{cmpSLB.CompanyId}/employees", postBodyPersonOne);
+            var responseBodyPersonOnE = await responsePersonOne.Content.ReadAsStringAsync();
+            var empOne = JsonConvert.DeserializeObject<Employee>(responseBodyPersonOnE);
+
+            await httpClient.PostAsync($"api/companies/{cmpSLB.CompanyId}/employees", postBodyPersonTwo);
+            var response = await httpClient.PutAsync($"api/companies/{cmpSLB.CompanyId}/employees/{empOne.EmployeeId}", postBodyPersonOneMd);
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var employee = JsonConvert.DeserializeObject<Employee>(responseBody);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(personOneMd, employee);
         }
     }
 }
