@@ -178,10 +178,44 @@ namespace CompanyApiTest.Controllers
             Assert.Equal("Schlumberger", updatedCompany.Name);
         }
 
+        [Fact]
+        public async Task Should_add_an_employee_to_company_successfully()
+        {
+            //given
+            var application = new WebApplicationFactory<Program>();
+            var httpClient = application.CreateClient();
+            await httpClient.DeleteAsync("/companies");
+            var newCompany = new Company(name: "SLB");
+            StringContent postBody = BuildRequestBody(newCompany);
+            var createdResponse = await httpClient.PostAsync("/companies", postBody);
+            var createdBody = await createdResponse.Content.ReadAsStringAsync();
+            var createdCompany = JsonConvert.DeserializeObject<Company>(createdBody);
+            var employee = new Employee(name: "Li Ming", salary: 10000);
+            StringContent employeeBody = BuildRequestBodyForEmployee(employee);
+
+            //when
+            var response = await httpClient.PostAsync($"/companies/{createdCompany.CompanyID}/employees",
+                employeeBody);
+
+            //then
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var updateResponse = await httpClient.GetAsync("/companies");
+            var updatedBody = await updateResponse.Content.ReadAsStringAsync();
+            var updatedCompanies = JsonConvert.DeserializeObject<List<Company>>(updatedBody);
+            Assert.Equal(employee.Name, updatedCompanies[0].Employees[0].Name);
+        }
+
         public static StringContent BuildRequestBody(Company newCompany)
         {
             var companyJson = JsonConvert.SerializeObject(newCompany);
             var postBody = new StringContent(companyJson, Encoding.UTF8, "application/json");
+            return postBody;
+        }
+
+        public static StringContent BuildRequestBodyForEmployee(Employee employee)
+        {
+            var employeeJson = JsonConvert.SerializeObject(employee);
+            var postBody = new StringContent(employeeJson, Encoding.UTF8, "application/json");
             return postBody;
         }
     }

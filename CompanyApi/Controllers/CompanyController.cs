@@ -68,5 +68,15 @@ namespace CompanyApi.Controllers
             companies.Clear();
             return Ok();
         }
+
+        [HttpPost("{companyID}/employees")]
+        public ActionResult<Employee> AddNewEmployee([FromRoute] string companyID, Employee employee)
+        {
+            employee.EmployeeID = Guid.NewGuid().ToString();
+            Company company = companies.Find(_ => _.CompanyID.Equals(companyID));
+            company.Employees.Add(employee);
+            return Ok(employee);
+        }
+
     }
 }
