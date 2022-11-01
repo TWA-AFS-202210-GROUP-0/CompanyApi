@@ -22,6 +22,7 @@ namespace CompanyApiTest.Controllers
             var serializedCompany = JsonConvert.SerializeObject(company);
             var postBody = new StringContent(serializedCompany, Encoding.UTF8, "application/json");
             // when
+            await httpClient.DeleteAsync("api/companies");
             var response = await httpClient.PostAsync("api/companies", postBody);
             var responseBody = await response.Content.ReadAsStringAsync();
             var createdCompany = JsonConvert.DeserializeObject<Company>(responseBody);
@@ -91,13 +92,37 @@ namespace CompanyApiTest.Controllers
             var responseGetSLB = await httpClient.PostAsync("api/companies", postBodyOne);
             await httpClient.PostAsync("api/companies", postBodyTwo);
             var responseSLBBody = await responseGetSLB.Content.ReadAsStringAsync();
-            var SLB = JsonConvert.DeserializeObject<Company>(responseSLBBody);
-            var response = await httpClient.GetAsync($"api/companies/{SLB.CompanyId}");
+            var cmpSLB = JsonConvert.DeserializeObject<Company>(responseSLBBody);
+            var response = await httpClient.GetAsync($"api/companies/{cmpSLB.CompanyId}");
             var responseBody = await response.Content.ReadAsStringAsync();
             var cmp = JsonConvert.DeserializeObject<Company>(responseBody);
             // then
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(companyOne, cmp);
+        }
+
+        [Fact]
+        public async void Should_get_index_X_company_to_index_Y_company_successfully()
+        {
+            // given
+            var application = new WebApplicationFactory<Program>();
+            var httpClient = application.CreateClient();
+            var companyOne = new Company(name: "SLB");
+            var companyTwo = new Company(name: "Thoughtworks");
+            var serializedCompanyOne = JsonConvert.SerializeObject(companyOne);
+            var postBodyOne = new StringContent(serializedCompanyOne, Encoding.UTF8, "application/json");
+            var serializedCompanyTwo = JsonConvert.SerializeObject(companyTwo);
+            var postBodyTwo = new StringContent(serializedCompanyTwo, Encoding.UTF8, "application/json");
+            // when
+            await httpClient.DeleteAsync("api/companies");
+            await httpClient.PostAsync("api/companies", postBodyOne);
+            await httpClient.PostAsync("api/companies", postBodyTwo);
+            var response = await httpClient.GetAsync("api/companies?pageIndex=2&pageSize=1");
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var cmp = JsonConvert.DeserializeObject<List<Company>>(responseBody);
+           // then
+           Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+           Assert.Equal(companyTwo, cmp[0]);
         }
     }
 }

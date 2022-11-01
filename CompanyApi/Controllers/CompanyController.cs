@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using Microsoft.AspNetCore.Mvc;
 using CompanyApi.Models;
 namespace CompanyApi.Controllers
@@ -27,16 +29,24 @@ namespace CompanyApi.Controllers
             //throw new CompanyException("the company has existed!");
         }
 
-        [HttpGet("companies")]
-        public List<Company> GetAllCompanies()
-        {
-            return companies;
-        }
-
         [HttpGet("companies/{id}")]
         public Company GetOneCompany([FromRoute] string id)
         {
             return companies.Find(cmp => cmp.CompanyId == id);
+        }
+
+        [HttpGet("companies")]
+        public List<Company> GetSeveralCompaniesFromOnePage([FromQuery] int? pageIndex, [FromQuery] int? pageSize)
+        {
+            if (pageIndex != null && pageSize != null)
+            {
+                int lower = (pageIndex.Value - 1) * pageSize.Value;
+                return companies.Skip(lower).Take(pageSize.Value).ToList();
+            }
+            else
+            {
+                return companies;
+            }
         }
 
         [HttpDelete("companies")]
@@ -44,5 +54,6 @@ namespace CompanyApi.Controllers
         {
             companies.Clear();
         }
+
     }
 }
