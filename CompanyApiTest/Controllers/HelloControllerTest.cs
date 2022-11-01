@@ -1,4 +1,5 @@
-﻿using System.Net.Http;
+﻿using System.Net;
+using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using CompanyApi;
@@ -10,10 +11,12 @@ namespace CompanyApiTest.Controllers
 {
     public class HelloControllerTest
     {
-        public HttpClient GetHttpClient()
+        public async Task<HttpClient> GetHttpClientAsync()
         {
             var application = new WebApplicationFactory<Program>();
-            return application.CreateClient();
+            var client = application.CreateClient();
+            _ = await client.DeleteAsync("companies/deleteAll");
+            return client;
         }
 
         [Fact]
@@ -36,7 +39,7 @@ namespace CompanyApiTest.Controllers
         public async Task Should_create_company()
         {
             // given
-            var httpClient = GetHttpClient();
+            var httpClient = await GetHttpClientAsync();
 
             // when
             var response = await httpClient.PostAsJsonAsync("companies", new Company("slb"));
@@ -45,8 +48,23 @@ namespace CompanyApiTest.Controllers
 
             // then
             response.EnsureSuccessStatusCode();
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             Assert.Equal("slb", company.Name);
             Assert.NotNull(company.Id);
+        }
+
+        [Fact]
+        public async Task Should_can_not_create_company_when_name_exist()
+        {
+            // given
+            var httpClient = await GetHttpClientAsync();
+            _ = await httpClient.PostAsJsonAsync("companies", new Company("slb"));
+
+            // when
+            var response = await httpClient.PostAsJsonAsync("companies", new Company("slb"));
+
+            // then
+            Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         }
     }
 }
