@@ -84,7 +84,7 @@ namespace CompanyApi.Controllers
         }
 
         [HttpPut("{CompanyID}/employees/{updateEmployee.EmployeeID}")]
-        public ActionResult<Company> ModifyEmployeeInformation([FromRoute] string companyID, Employee updateEmployee)
+        public ActionResult<Company> UpdateEmployeeInformation([FromRoute] string companyID, Employee updateEmployee)
         {
             var company = companies.Find(_ => _.CompanyID.Equals(companyID));
             var targetEmployee = company.Employees.Find(_ => _.EmployeeID.Equals(updateEmployee.EmployeeID));
@@ -99,7 +99,7 @@ namespace CompanyApi.Controllers
         }
 
         [HttpDelete("{companyID}/employees/{employeeId}")]
-        public ActionResult<List<Employee>> DeleteOneEmployee([FromRoute] string companyID, [FromRoute] string employeeId)
+        public ActionResult<List<Employee>> DeleteEmployee([FromRoute] string companyID, [FromRoute] string employeeId)
         {
             Company company = companies.Find(_ => _.CompanyID.Equals(companyID));
             var targetEmployee = company.Employees.Find(_ => _.EmployeeID.Equals(employeeId));
@@ -107,5 +107,12 @@ namespace CompanyApi.Controllers
             return Ok(company.Employees);
         }
 
+        [HttpDelete("{companyID}")]
+        public ActionResult DeleteCompany([FromRoute] string companyID)
+        {
+            Company company = companies.Find(item => item.CompanyID.Equals(companyID));
+            companies.Remove(company);
+            return Ok();
+        }
     }
 }

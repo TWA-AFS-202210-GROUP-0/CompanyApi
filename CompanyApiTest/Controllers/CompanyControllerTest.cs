@@ -289,10 +289,33 @@ namespace CompanyApiTest.Controllers
             var deleteResponse = await httpClient.DeleteAsync($"/companies/{createdCompany.CompanyID}/employees/{createEmployee.EmployeeID}");
 
             //then
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, deleteResponse.StatusCode);
             var deleteBody = await deleteResponse.Content.ReadAsStringAsync();
             var newEmployeesList = JsonConvert.DeserializeObject<List<Employee>>(deleteBody);
             Assert.Equal(0, newEmployeesList.Count);
+        }
+
+        [Fact]
+        public async Task Should_delete_a_company_successfully()
+        {
+            //given
+            var application = new WebApplicationFactory<Program>();
+            var httpClient = application.CreateClient();
+            await httpClient.DeleteAsync("/companies");
+            var newCompany = new Company(name: "SLB");
+            StringContent postBody = BuildRequestBody(newCompany);
+            var createdResponse = await httpClient.PostAsync("/companies", postBody);
+            var createdBody = await createdResponse.Content.ReadAsStringAsync();
+            var createdCompany = JsonConvert.DeserializeObject<Company>(createdBody);
+            var employee = new Employee(name: "Li Ming", salary: 10000);
+            StringContent employeeBody = BuildRequestBodyForEmployee(employee);
+            await httpClient.PostAsync($"/companies/{createdCompany.CompanyID}/employees",
+                employeeBody);
+            //when
+            var deleteResponse = await httpClient.DeleteAsync($"/companies/{createdCompany.CompanyID}");
+
+            //then
+            Assert.Equal(HttpStatusCode.OK, deleteResponse.StatusCode);
         }
 
         public static StringContent BuildRequestBody(Company newCompany)
