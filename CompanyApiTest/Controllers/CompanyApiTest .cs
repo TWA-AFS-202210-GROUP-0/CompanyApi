@@ -62,10 +62,10 @@ namespace CompanyApiTest.Controllers
             var serializedCompanyTwo = JsonConvert.SerializeObject(companyTwo);
             var postBodyTwo = new StringContent(serializedCompanyTwo, Encoding.UTF8, "application/json");
             // when
-            await httpClient.DeleteAsync("api/deletAllCompanies");
+            await httpClient.DeleteAsync("api/companies");
             await httpClient.PostAsync("api/companies", postBodyOne);
             await httpClient.PostAsync("api/companies", postBodyTwo);
-            var response = await httpClient.GetAsync("api/getAllCompanies");
+            var response = await httpClient.GetAsync("api/companies");
             var responseBody = await response.Content.ReadAsStringAsync();
             var companies = JsonConvert.DeserializeObject<List<Company>>(responseBody);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -87,10 +87,12 @@ namespace CompanyApiTest.Controllers
             var serializedCompanyTwo = JsonConvert.SerializeObject(companyTwo);
             var postBodyTwo = new StringContent(serializedCompanyTwo, Encoding.UTF8, "application/json");
             // when
-            await httpClient.DeleteAsync("api/deletAllCompanies");
-            await httpClient.PostAsync("api/companies", postBodyOne);
+            await httpClient.DeleteAsync("api/companies");
+            var responseGetSLB = await httpClient.PostAsync("api/companies", postBodyOne);
             await httpClient.PostAsync("api/companies", postBodyTwo);
-            var response = await httpClient.GetAsync("api/getOneCmp?name=SLB");
+            var responseSLBBody = await responseGetSLB.Content.ReadAsStringAsync();
+            var SLB = JsonConvert.DeserializeObject<Company>(responseSLBBody);
+            var response = await httpClient.GetAsync($"api/companies/{SLB.CompanyId}");
             var responseBody = await response.Content.ReadAsStringAsync();
             var cmp = JsonConvert.DeserializeObject<Company>(responseBody);
             // then

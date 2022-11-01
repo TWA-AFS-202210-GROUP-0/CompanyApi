@@ -27,13 +27,19 @@ namespace CompanyApi.Controllers
             //throw new CompanyException("the company has existed!");
         }
 
-        [HttpGet("getAllCompanies")]
+        [HttpGet("companies")]
         public List<Company> GetAllCompanies()
         {
             return companies;
         }
 
-        [HttpDelete("deletAllCompanies")]
+        [HttpGet("companies/{id}")]
+        public Company GetOneCompany([FromRoute] string id)
+        {
+            return companies.Find(cmp => cmp.CompanyId == id);
+        }
+
+        [HttpDelete("companies")]
         public void DeleteAllCompanies()
         {
             companies.Clear();
