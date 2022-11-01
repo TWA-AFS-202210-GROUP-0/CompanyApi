@@ -51,9 +51,17 @@ namespace CompanyApi.Controllers
         public ActionResult<Company> UpdateCompanyInfo([FromRoute] string id, Company company)
         {
             var originalCompany = companies.FirstOrDefault(comp => comp.Id.Equals(id));
-            if (company == null) { return NotFound(); }
+            if (originalCompany == null) { return NotFound(); }
             originalCompany.Name = company.Name;
             return originalCompany;
+        }
+
+        [HttpPost("{id}/employees")]
+        public ActionResult<Employee> AddEmployee([FromRoute] string id, Employee employee)
+        {
+            var company = companies.FirstOrDefault(comp => comp.Id.Equals(id));
+            if (company == null) { return NotFound(); }
+            return company.AddEmployee(employee) ? new CreatedResult($"/companies/{company.Id}/employees/{employee.Id}", employee) : StatusCode(500);
         }
     }
 }
