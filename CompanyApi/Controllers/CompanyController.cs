@@ -46,5 +46,14 @@ namespace CompanyApi.Controllers
             var company = companies.FirstOrDefault(comp => comp.Id.Equals(id));
             return company == null ? NotFound() : company;
         }
+
+        [HttpPut("{id}")]
+        public ActionResult<Company> UpdateCompanyInfo([FromRoute] string id, Company company)
+        {
+            var originalCompany = companies.FirstOrDefault(comp => comp.Id.Equals(id));
+            if (company == null) { return NotFound(); }
+            originalCompany.Name = company.Name;
+            return originalCompany;
+        }
     }
 }

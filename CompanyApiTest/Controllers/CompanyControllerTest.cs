@@ -138,5 +138,23 @@ namespace CompanyApiTest.Controllers
             Assert.Equal(comp1.Name, companies[0].Name);
             Assert.Equal(comp2.Name, companies[1].Name);
         }
+
+        [Fact]
+        public async Task Should_update_name_sucessfully()
+        {
+            // given
+            var httpClient = CreateHttpClient();
+            var comp1 = await AddCompany(httpClient, "comp1");
+            comp1.Name = "NewComp1";
+            var requestBody = CreateRequestBody(comp1);
+
+            // when
+            var response = await httpClient.PutAsync($"/companies/{comp1.Id}", requestBody);
+
+            // then
+            response.EnsureSuccessStatusCode();
+            var company = await DeserializeResponse<Company>(response);
+            Assert.Equal(comp1.Name, company.Name);
+        }
     }
 }

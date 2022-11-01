@@ -5,14 +5,13 @@ namespace CompanyApiTest.Controllers
 {
     public class Company
     {
-        private string name;
 
         public Company(string name)
         {
-            this.name = name;
+            Name = name;
         }
 
-        public string Name { get => name; }
+        public string Name { get; set; }
         public string? Id { get; set; }
     }
 }
