@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace CompanyApi.Models
 {
@@ -8,9 +9,11 @@ namespace CompanyApi.Models
         {
             Name = name;
             CompanyID = string.Empty;
+            Employees = new List<Employee>();
         }
 
         public string? CompanyID { get; set; }
         public string Name { get; set; }
+        public List<Employee> Employees { get; set; }
     }
 }
