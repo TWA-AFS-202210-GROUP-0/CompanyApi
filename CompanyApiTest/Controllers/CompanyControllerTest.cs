@@ -92,6 +92,34 @@ namespace CompanyApiTest.Controllers
             Assert.Equal("SLB", responseActual[0].Name);
         }
 
+        [Fact]
+        public async Task Should_get_all_companies_in_page_3_when_one_page_has_1_element()
+        {
+            // given
+            var application = new WebApplicationFactory<Program>();
+            var httpClient = application.CreateClient();
+            await httpClient.DeleteAsync("/companies");
+
+            await httpClient.PostAsync("/companies", BuildRequestBody(new Company(name: "SLB")));
+            await httpClient.PostAsync("/companies", BuildRequestBody(new Company(name: "TW")));
+            await httpClient.PostAsync("/companies", BuildRequestBody(new Company(name: "IBM")));
+            // when
+            var response = await httpClient.GetAsync("/companies?pageSize=1&pageIndex=1");
+            // then
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var createdCompany = JsonConvert.DeserializeObject<List<Company>>(responseBody);
+            Assert.Equal("SLB", createdCompany[0].Name);
+        }
+
+        private static HttpClient AddCompanies(string companyName, HttpClient httpClient)
+        {
+            var company = new Company(name: "SLB");
+            var postBody = BuildRequestBody(company);
+            httpClient.PostAsync("/companies", postBody);
+            return httpClient;
+        }
+
         private static StringContent BuildRequestBody(Company company)
         {
             company = new Company(name: "SLB");
