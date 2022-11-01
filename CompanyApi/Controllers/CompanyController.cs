@@ -46,6 +46,25 @@ namespace CompanyApi.Controllers
             return companies.Find(_ => _.CompanyID == id);
         }
 
+        [HttpPut]
+        public ActionResult<Company> ModifyCompanyName(Company updateCompany)
+        {
+            var currentCompany = companies.Find(_ => _.CompanyID == updateCompany.CompanyID);
+            if (currentCompany == null)
+            {
+                return NotFound();
+            }
+
+            currentCompany.Name = updateCompany.Name;
+            return Ok(currentCompany);
+        }
+
+        //[HttpPut]
+        //public ActionResult<Company> Put(Company updateCompany)
+        //{
+        //    return updateCompany;
+        //}
+
         [HttpDelete]
         public void DeleteAllPets()
         {

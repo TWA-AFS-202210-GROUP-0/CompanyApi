@@ -88,8 +88,8 @@ namespace CompanyApiTest.Controllers
             // then
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var responseBody = await response.Content.ReadAsStringAsync();
-            var responseActual = JsonConvert.DeserializeObject<List<Company>>(responseBody);
-            Assert.Equal("SLB", responseActual[0].Name);
+            var responseActual = JsonConvert.DeserializeObject<Company>(responseBody);
+            Assert.Equal("TW", responseActual.Name);
         }
 
         [Fact]
@@ -112,18 +112,58 @@ namespace CompanyApiTest.Controllers
             Assert.Equal("SLB", createdCompany[0].Name);
         }
 
-        private static HttpClient AddCompanies(string companyName, HttpClient httpClient)
+        [Fact]
+        public async void Should_update_company_information_of_an_existing_company_successfully()
         {
-            var company = new Company(name: "SLB");
-            var postBody = BuildRequestBody(company);
-            httpClient.PostAsync("/companies", postBody);
-            return httpClient;
+            // given
+            var application = new WebApplicationFactory<Program>();
+            var httpClient = application.CreateClient();
+            await httpClient.DeleteAsync("/companies");
+            var newCompany = new Company(name: "SLB");
+            StringContent postBody = BuildRequestBody(newCompany);
+            var response = await httpClient.PostAsync("/companies", postBody);
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var createdCompany = JsonConvert.DeserializeObject<Company>(responseBody);
+            createdCompany.Name = "Schlumberger";
+            StringContent updateBody = BuildRequestBody(createdCompany);
+            //when
+            var updateResponse = await httpClient.PutAsync($"/companies", updateBody);
+
+            // then
+            Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
+            var updatedBody = await updateResponse.Content.ReadAsStringAsync();
+            var updatedCompany = JsonConvert.DeserializeObject<Company>(updatedBody);
+            Assert.Equal("Schlumberger", updatedCompany.Name);
         }
 
-        private static StringContent BuildRequestBody(Company company)
+        [Fact]
+        public async Task Should_add_employee_to_company_with_id_successfully()
         {
-            company = new Company(name: "SLB");
-            var companyJson = JsonConvert.SerializeObject(company);
+            // given
+            var application = new WebApplicationFactory<Program>();
+            var httpClient = application.CreateClient();
+            await httpClient.DeleteAsync("/companies");
+            var newCompany = new Company(name: "SLB");
+            StringContent postBody = BuildRequestBody(newCompany);
+            var response = await httpClient.PostAsync("/companies", postBody);
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var createdCompany = JsonConvert.DeserializeObject<Company>(responseBody);
+            string comparyId = createdCompany.CompanyID;
+            var employee = new Employee(name: "lijie");
+            StringContent postEmployeeBody = BuildRequestBody(employee);
+            // when
+            var employeeResponse = await httpClient.PostAsync($"/companies/{comparyId}/employees", postEmployeeBody);
+            // then
+            // then
+            Assert.Equal(HttpStatusCode.Created, employeeResponse.StatusCode);
+            var employeeResponseBody = await employeeResponse.Content.ReadAsStringAsync();
+            var createdEmployee = JsonConvert.DeserializeObject<Employee>(employeeResponseBody);
+            Assert.NotEmpty(createdEmployee.EmployeeID);
+        }
+
+        public static StringContent BuildRequestBody(Object newCompany)
+        {
+            var companyJson = JsonConvert.SerializeObject(newCompany);
             var postBody = new StringContent(companyJson, Encoding.UTF8, "application/json");
             return postBody;
         }
