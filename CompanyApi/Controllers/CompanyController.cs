@@ -52,7 +52,7 @@ namespace CompanyApi.Controllers
         }
 
         [HttpGet("")]
-        public ActionResult<List<CompanyDto>> GetCompaniesByPage([FromQuery] int? pageSize, [FromQuery]int? pageIndex)
+        public ActionResult<List<CompanyDto>> GetCompaniesByPage([FromQuery] int? pageSize, [FromQuery] int? pageIndex)
         {
             if (!pageSize.HasValue || !pageIndex.HasValue)
             {
@@ -68,22 +68,20 @@ namespace CompanyApi.Controllers
             }
 
             pageSize = endIndex < companies.Count ? pageSize : companies.Count - startIndex;
-            var companiesInPage = companies.GetRange(startIndex.GetValueOrDefault(), pageSize.GetValueOrDefault()).ToList();
+            var companiesInPage = companies.GetRange(startIndex.GetValueOrDefault(), pageSize.GetValueOrDefault())
+                .ToList();
             var companiesInPageDto = companiesInPage.Select(company => company.ToDto()).ToList();
             return Ok(companiesInPageDto);
         }
 
         [HttpPatch("{companyId}")]
-        public ActionResult<CompanyDto> UpdateCompanyInformation([FromRoute] string companyId, [FromBody] CompanyDto companyDto)
+        public ActionResult<CompanyDto> UpdateCompanyInformation([FromRoute] string companyId,
+            [FromBody] CompanyDto companyDto)
         {
             var companyToBeUpdated = companies.Find(e => e.CompanyId == companyId);
             if (companyToBeUpdated != null)
             {
-                if (companyDto.Name != null)
-                {
-                    companyToBeUpdated.Name = companyDto.Name;
-                }
-
+                companyToBeUpdated.Name = companyDto.Name;
                 return Ok(companyToBeUpdated.ToDto());
             }
 
@@ -93,22 +91,29 @@ namespace CompanyApi.Controllers
         [HttpPost("{companyId}/employees/")]
         public ActionResult<EmployeeDto> AddEmployee([FromRoute] string companyId, [FromBody] EmployeeDto employeeDto)
         {
+            if (employeeDto.Name == null)
+            {
+                return BadRequest();
+            }
+
             var companyByFind = companies.Find(e => e.CompanyId == companyId);
             if (companyByFind == null)
             {
                 return new NotFoundResult();
             }
 
+            const double initSalary = 100;
             var newEmployee = new Employee()
             {
                 Name = employeeDto.Name,
-                Salary = employeeDto.Salary,
+                Salary = employeeDto.Salary.HasValue ? employeeDto.Salary.Value : initSalary,
                 EmployeeId = Guid.NewGuid().ToString(),
             };
 
             companyByFind.Employees.Add(newEmployee);
 
-            return new CreatedResult($"/companies/{companyByFind.CompanyId}/employees/{newEmployee.EmployeeId}", newEmployee.ToDto());
+            return new CreatedResult($"/companies/{companyByFind.CompanyId}/employees/{newEmployee.EmployeeId}",
+                newEmployee.ToDto());
         }
 
         [HttpGet("{companyId}/employees/")]
@@ -121,6 +126,63 @@ namespace CompanyApi.Controllers
             }
 
             return Ok(companyByFind.Employees.Select(e => e.ToDto()).ToList());
+        }
+
+        [HttpPatch("{companyId}/employees/{employeeId}")]
+        public ActionResult<CompanyDto> UpdateEmployeeInformation([FromRoute] string companyId,
+            [FromRoute] string employeeId, [FromBody] EmployeeDto employeeDto)
+        {
+            var companyByFind = companies.Find(e => e.CompanyId == companyId);
+            if (companyByFind != null)
+            {
+                var employeToBeUpdated = companyByFind.Employees.Find(e => e.EmployeeId.Equals(employeeId));
+                if (employeToBeUpdated != null)
+                {
+                    if (employeeDto.Name != null)
+                    {
+                        employeToBeUpdated.Name = employeeDto.Name;
+                    }
+
+                    if (employeeDto.Salary.HasValue)
+                    {
+                        employeToBeUpdated.Salary = employeeDto.Salary.Value;
+                    }
+
+                    return Ok(employeToBeUpdated.ToDto());
+                }
+            }
+
+            return new NotFoundResult();
+        }
+
+        [HttpDelete("{companyId}/employees/{employeeId}")]
+        public ActionResult<string> DeleteEmployee([FromRoute] string companyId, [FromRoute] string employeeId)
+        {
+            var companyByFind = companies.Find(e => e.CompanyId == companyId);
+            if (companyByFind != null)
+            {
+                var employeToBeRemoved = companyByFind.Employees.Find(e => e.EmployeeId.Equals(employeeId));
+                if (employeToBeRemoved != null)
+                {
+                    companyByFind.Employees.Remove(employeToBeRemoved);
+                    return Ok("Employee removed");
+                }
+            }
+
+            return new NotFoundResult();
+        }
+
+        [HttpDelete("{companyId}")]
+        public ActionResult<string> DeleteCompany([FromRoute] string companyId)
+        {
+            var companyByFind = companies.Find(e => e.CompanyId == companyId);
+            if (companyByFind != null)
+            {
+                companies.Remove(companyByFind);
+                return Ok("Company removed");
+            }
+
+            return new NotFoundResult();
         }
     }
 }

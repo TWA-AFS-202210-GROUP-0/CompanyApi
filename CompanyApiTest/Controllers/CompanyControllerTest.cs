@@ -226,6 +226,56 @@ namespace CompanyApiTest.Controllers
             Assert.Equal(2, getResult.Count);
         }
 
+        [Fact]
+        public async void Should_update_employee()
+        {
+            //Given
+            var httpClient = SetUpEnviroment();
+            var createdCompanyResult = await CreateCompanyForTest(httpClient);
+            var meng = await CreateEmployeeForTest(httpClient, createdCompanyResult, "Meng");
+            var updateEmployee = new EmployeeDto()
+            {
+                Name = "Meng Yao",
+                Salary = 2000,
+            };
+            var patchRequest = BuildRequest(updateEmployee);
+            var patchResponse = await httpClient.PatchAsync($"companies/{createdCompanyResult.CompanyId}/employees/{meng.EmployeeId}", patchRequest);
+            //Then
+            patchResponse.EnsureSuccessStatusCode();
+            var patchResult = await ParseRespone<EmployeeDto>(patchResponse);
+            Assert.Equal("Meng Yao", patchResult.Name);
+            Assert.Equal(2000, patchResult.Salary);
+        }
+
+        [Fact]
+        public async void Should_remove_employee()
+        {
+            //Given
+            var httpClient = SetUpEnviroment();
+            var createdCompanyResult = await CreateCompanyForTest(httpClient);
+            var meng = await CreateEmployeeForTest(httpClient, createdCompanyResult, "Meng");
+            var deleteResponse = await httpClient.DeleteAsync($"companies/{createdCompanyResult.CompanyId}/employees/{meng.EmployeeId}");
+            //Then
+            deleteResponse.EnsureSuccessStatusCode();
+            var responeAsStringAsync = await deleteResponse.Content.ReadAsStringAsync();
+            Assert.Equal(HttpStatusCode.OK, deleteResponse.StatusCode);
+            Assert.Equal("Employee removed", responeAsStringAsync);
+        }
+
+        [Fact]
+        public async void Should_remove_company()
+        {
+            //Given
+            var httpClient = SetUpEnviroment();
+            var createdCompanyResult = await CreateCompanyForTest(httpClient);
+            var meng = await CreateEmployeeForTest(httpClient, createdCompanyResult, "Meng");
+            var deleteResponse = await httpClient.DeleteAsync($"companies/{createdCompanyResult.CompanyId}");
+            //Then
+            deleteResponse.EnsureSuccessStatusCode();
+            var responeAsStringAsync = await deleteResponse.Content.ReadAsStringAsync();
+            Assert.Equal(HttpStatusCode.OK, deleteResponse.StatusCode);
+            Assert.Equal("Company removed", responeAsStringAsync);
+        }
 
         public HttpClient SetUpEnviroment()
         {
