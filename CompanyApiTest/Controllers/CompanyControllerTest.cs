@@ -39,6 +39,15 @@ namespace CompanyApiTest.Controllers
             return createdCompany;
         }
 
+        public async Task<Employee> AddEmployee(HttpClient httpClient, string name, float salary, string companyID)
+        {
+            var employee = new Employee(name, salary);
+            var requestBody = CreateRequestBody(employee);
+            var response = await httpClient.PostAsync($"/companies/{companyID}/employees", requestBody);
+            Employee createdEmployee = await DeserializeResponse<Employee>(response);
+            return createdEmployee;
+        }
+
         [Fact]
         public async Task Should_add_company_sucessfully()
         {
@@ -174,6 +183,25 @@ namespace CompanyApiTest.Controllers
             Employee hiredEmployee = await DeserializeResponse<Employee>(response);
             Assert.Equal(employee.Name, hiredEmployee.Name);
             Assert.Equal(employee.Salary, hiredEmployee.Salary);
+        }
+
+        [Fact]
+        public async Task Should_get_employees_for_a_company_sucessfully()
+        {
+            // given
+            var httpClient = CreateHttpClient();
+            var comp1 = await AddCompany(httpClient, "comp1");
+            var employee = await AddEmployee(httpClient, "Yanxi", 1, comp1.Id);
+
+            // when
+            var response = await httpClient.GetAsync($"/companies/{comp1.Id}/employees");
+
+            // then
+            response.EnsureSuccessStatusCode();
+            List<Employee> hiredEmployees = await DeserializeResponse<List<Employee>>(response);
+            Assert.Single(hiredEmployees);
+            Assert.Equal(employee.Name, hiredEmployees[0].Name);
+            Assert.Equal(employee.Salary, hiredEmployees[0].Salary);
         }
     }
 }

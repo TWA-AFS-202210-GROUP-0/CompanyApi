@@ -63,5 +63,11 @@ namespace CompanyApi.Controllers
             if (company == null) { return NotFound(); }
             return company.AddEmployee(employee) ? new CreatedResult($"/companies/{company.Id}/employees/{employee.Id}", employee) : StatusCode(500);
         }
+
+        [HttpGet("{id}/employees")]
+        public ActionResult<List<Employee>> GetEmployees([FromRoute] string id)
+        {
+            return companies.FirstOrDefault(comp => comp.Id.Equals(id))?.Employees;
+        }
     }
 }

@@ -15,6 +15,8 @@ namespace CompanyApiTest.Controllers
         public string Name { get; set; }
         public string? Id { get; set; }
 
+        public List<Employee> Employees { get => employees; }
+
         public bool AddEmployee(Employee employee)
         {
             try
