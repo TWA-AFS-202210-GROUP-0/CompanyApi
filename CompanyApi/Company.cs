@@ -12,6 +12,6 @@ namespace CompanyApi
         }
 
         public string Name { get; set; }
-        public string CompanyID { get; set; }
+        public string? CompanyID { get; set; }
     }
 }

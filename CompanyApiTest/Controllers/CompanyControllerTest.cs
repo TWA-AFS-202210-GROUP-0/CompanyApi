@@ -98,6 +98,86 @@ namespace CompanyApiTest.Controllers
             Assert.Equal("SLB", getCompany.Name);
         }
 
+        [Fact]
+        public async void Should_get_companies_of_page_X_from_system_successfully()
+        {
+            // given
+            var application = new WebApplicationFactory<Program>();
+            var httpClient = application.CreateClient();
+            await httpClient.DeleteAsync("/companies");
+            var company1 = new Company(name: "SLB");
+            StringContent company1Body = BuildRequestBody(company1);
+            var company2 = new Company(name: "TW");
+            StringContent company2Body = BuildRequestBody(company2);
+            var company3 = new Company(name: "SF");
+            StringContent company3Body = BuildRequestBody(company3);
+            await httpClient.PostAsync("/companies", company1Body);
+            await httpClient.PostAsync("/companies", company2Body);
+            await httpClient.PostAsync("/companies", company3Body);
+
+            // when
+            int pageSize = 1;
+            int pageIndex = 2;
+            var response = await httpClient.GetAsync($"/companies/page/{pageIndex}?pageSize={pageSize}");
+
+            // then
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var companiesList = JsonConvert.DeserializeObject<List<Company>>(responseBody);
+            Assert.Equal(company2.Name, companiesList[0].Name);
+        }
+
+        [Fact]
+        public async void Should_get_companies_of_page_X_from_system_failed()
+        {
+            // given
+            var application = new WebApplicationFactory<Program>();
+            var httpClient = application.CreateClient();
+            await httpClient.DeleteAsync("/companies");
+            var company1 = new Company(name: "SLB");
+            StringContent company1Body = BuildRequestBody(company1);
+            var company2 = new Company(name: "TW");
+            StringContent company2Body = BuildRequestBody(company2);
+            var company3 = new Company(name: "SF");
+            StringContent company3Body = BuildRequestBody(company3);
+            await httpClient.PostAsync("/companies", company1Body);
+            await httpClient.PostAsync("/companies", company2Body);
+            await httpClient.PostAsync("/companies", company3Body);
+
+            // when
+            int pageSize = 1;
+            int pageIndex = 4;
+            var response = await httpClient.GetAsync($"/companies/page/{pageIndex}?pageSize={pageSize}");
+
+            // then
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
+        [Fact]
+        public async void Should_update_company_information_of_an_existing_company_successfully()
+        {
+            // given
+            var application = new WebApplicationFactory<Program>();
+            var httpClient = application.CreateClient();
+            await httpClient.DeleteAsync("/companies");
+            var newCompany = new Company(name: "SLB");
+            StringContent postBody = BuildRequestBody(newCompany);
+            var response = await httpClient.PostAsync("/companies", postBody);
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var createdCompany = JsonConvert.DeserializeObject<Company>(responseBody);
+            createdCompany.Name = "Schlumberger";
+            StringContent updateBody = BuildRequestBody(createdCompany);
+
+            //when
+            var updateResponse = await httpClient.PutAsync($"/companies/{createdCompany.CompanyID}", updateBody);
+
+            // then
+            Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
+            var updatedBody = await updateResponse.Content.ReadAsStringAsync();
+            var updatedCompany = JsonConvert.DeserializeObject<Company>(updatedBody);
+            Assert.Equal("Schlumberger", updatedCompany.Name);
+        }
+
         public static StringContent BuildRequestBody(Company newCompany)
         {
             var companyJson = JsonConvert.SerializeObject(newCompany);

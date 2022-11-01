@@ -24,15 +24,42 @@ namespace CompanyApi.Controllers
         }
 
         [HttpGet]
-        public ActionResult<List<Company>> GetAllPets()
+        public ActionResult<List<Company>> GetAllCompanies()
         {
             return Ok(companies);
         }
 
         [HttpGet("{companyID}")]
-        public ActionResult<Company> GetAllPets([FromRoute] string companyID)
+        public ActionResult<Company> GetCompany([FromRoute] string companyID)
         {
             return Ok(companies.Find(_ => _.CompanyID.Equals(companyID)));
+        }
+
+        [HttpGet("page/{pageIndex}")]
+        public ActionResult<Company> GetCompany([FromRoute] int pageIndex, [FromQuery] int pageSize)
+        {
+            int companyCount = companies.Count();
+            int beginCompanyIndex = (pageIndex * pageSize) - 1;
+            int pageIndexCount = Math.Min(pageSize, companyCount - (pageIndex * pageSize));
+            if (pageIndexCount <= 0)
+            {
+                return NotFound();
+            }
+
+            return Ok(companies.GetRange(beginCompanyIndex, pageIndexCount));
+        }
+
+        [HttpPut("{updateCompany.CompanyID}")]
+        public ActionResult<Company> ModifyCompanyName(Company updateCompany)
+        {
+            var currentCompany = companies.Find(_ => _.CompanyID == updateCompany.CompanyID);
+            if (currentCompany == null)
+            {
+                return NotFound();
+            }
+
+            currentCompany.Name = updateCompany.Name;
+            return Ok(currentCompany);
         }
 
         [HttpDelete]
