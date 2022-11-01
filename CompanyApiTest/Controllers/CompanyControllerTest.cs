@@ -29,22 +29,6 @@ namespace CompanyApiTest.Controllers
         }
 
         [Fact]
-        public async Task Should_return_hello_world_with_default_request()
-        {
-            // given
-            var application = new WebApplicationFactory<Program>();
-            var httpClient = application.CreateClient();
-
-            // when
-            var response = await httpClient.GetAsync("/hello");
-            var responseString = await response.Content.ReadAsStringAsync();
-
-            // then
-            response.EnsureSuccessStatusCode();
-            Assert.Equal("Hello World", responseString);
-        }
-
-        [Fact]
         public async Task Should_add_company_sucessfully()
         {
             // given
@@ -60,6 +44,22 @@ namespace CompanyApiTest.Controllers
             Company createdCompany = await DeserializeResponse<Company>(response);
             Assert.Equal(company.Name, createdCompany.Name);
             Assert.NotEmpty(createdCompany.Id);
+        }
+
+        [Fact]
+        public async Task Should_not_add_company_when_the_name_is_same()
+        {
+            // given
+            var httpClient = CreateHttpClient();
+            var company = new Company("Mengyao");
+            var requestBody = CreateRequestBody(company);
+            await httpClient.PostAsync("/companies", requestBody);
+
+            // when
+            var response = await httpClient.PostAsync("/companies", requestBody);
+
+            // then
+            Assert.Equal(System.Net.HttpStatusCode.Conflict, response.StatusCode);
         }
 
         [Fact]

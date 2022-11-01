@@ -14,6 +14,7 @@ namespace CompanyApi.Controllers
         [HttpPost]
         public ActionResult<Company> AddNewCompany(Company company)
         {
+            if (companies.Exists(comp => comp.Name.Equals(company.Name))) { return new ConflictResult();  }
             company.Id = Guid.NewGuid().ToString();
             companies.Add(company);
             return new CreatedResult($"/companies/{company.Id}", company);
