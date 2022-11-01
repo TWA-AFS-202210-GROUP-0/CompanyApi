@@ -85,7 +85,7 @@ namespace CompanyApi.Controllers
             }
         }
 
-        [HttpPut("{Id}/employee")]
+        [HttpPost("{Id}/employee")]
         public ActionResult<Company> AddEmployee([FromRoute] string id, [FromBody] Employee employee)
         {
             try
@@ -118,6 +118,30 @@ namespace CompanyApi.Controllers
             {
                 var res = companies.Single(c => c.Id.Equals(id));
                 return Ok(employees.Where(e => e.CompanyId.Equals(id)));
+            }
+            catch (Exception e)
+            {
+                return NotFound(e.Message);
+            }
+        }
+
+        [HttpPut("{Id}/employee/{employeeId}")]
+        public ActionResult<Company> UpdateEmployee([FromRoute] string id, [FromRoute] string employeeId, [FromBody] Employee inputEmployee)
+        {
+            try
+            {
+                var curCompany = companies.Single(c => c.Id.Equals(id));
+                if (curCompany.EmployeeIDs.Any(e => e.Equals(employeeId)))
+                {
+                    var curEmployee = employees.Single(e => e.EmployeeID.Equals(employeeId));
+                    curEmployee.Name = string.IsNullOrEmpty(inputEmployee.Name) ? curEmployee.Name : inputEmployee.Name;
+                    curEmployee.Salary = inputEmployee.Salary ?? inputEmployee.Salary;
+                    return Ok(curCompany);
+                }
+                else
+                {
+                    return NotFound();
+                }
             }
             catch (Exception e)
             {
