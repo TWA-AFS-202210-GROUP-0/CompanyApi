@@ -66,7 +66,22 @@ namespace CompanyApiTest.Controllers
             var companies = JsonConvert.DeserializeObject<List<Company>>(responseString);
             // then
             Assert.Equal(2, companies.Count);
+        }
 
+        [Fact]
+        public async Task Should_get_company_by_id()
+        {
+            // given
+            var httpClient = await GetHttpClientAsync();
+            var createResponse = await httpClient.PostAsJsonAsync("companies", new Company("slb"));
+            var company = JsonConvert.DeserializeObject<Company>(await createResponse.Content.ReadAsStringAsync());
+
+            // when
+            var response = await httpClient.GetAsync($"companies/{company.Id}");
+            var responseString = await response.Content.ReadAsStringAsync();
+            var responseCompany = JsonConvert.DeserializeObject<Company>(responseString);
+            // then
+            Assert.Equal(responseCompany, company);
         }
     }
 }

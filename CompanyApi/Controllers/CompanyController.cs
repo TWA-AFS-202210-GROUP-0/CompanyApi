@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace CompanyApi.Controllers
 {
@@ -33,6 +35,21 @@ namespace CompanyApi.Controllers
         public List<Company> GetAllCompanies()
         {
             return companies;
+        }
+
+        [HttpGet]
+        [Route("{Id}")]
+        public ActionResult<Company> GetCompanyById([FromRoute] string id)
+        {
+            try
+            {
+                var res = companies.Single(c => c.Id.Equals(id));
+                return new ObjectResult(res);
+            }
+            catch (Exception e)
+            {
+                return NotFound(e.Message);
+            }
         }
     }
 }
