@@ -98,5 +98,14 @@ namespace CompanyApi.Controllers
             return Ok(targetEmployee);
         }
 
+        [HttpDelete("{companyID}/employees/{employeeId}")]
+        public ActionResult<List<Employee>> DeleteOneEmployee([FromRoute] string companyID, [FromRoute] string employeeId)
+        {
+            Company company = companies.Find(_ => _.CompanyID.Equals(companyID));
+            var targetEmployee = company.Employees.Find(_ => _.EmployeeID.Equals(employeeId));
+            company.Employees.Remove(targetEmployee);
+            return Ok(company.Employees);
+        }
+
     }
 }
