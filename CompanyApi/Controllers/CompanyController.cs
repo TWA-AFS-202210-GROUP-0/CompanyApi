@@ -69,5 +69,14 @@ namespace CompanyApi.Controllers
         {
             return companies.FirstOrDefault(comp => comp.Id.Equals(id))?.Employees;
         }
+
+        [HttpPut("{companyId}/employees/{employeeId}")]
+        public ActionResult<Employee> UpdateEmployee([FromRoute] string companyId, [FromRoute] string employeeId, Employee newEmployee)
+        {
+            var employees = companies.FirstOrDefault(comp => comp.Id.Equals(companyId))?.Employees;
+            var employee = employees.FirstOrDefault(employee => employee.Id.Equals(employeeId));
+            employee = newEmployee;
+            return employee;
+        }
     }
 }

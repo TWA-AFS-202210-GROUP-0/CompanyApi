@@ -203,5 +203,24 @@ namespace CompanyApiTest.Controllers
             Assert.Equal(employee.Name, hiredEmployees[0].Name);
             Assert.Equal(employee.Salary, hiredEmployees[0].Salary);
         }
+
+        [Fact]
+        public async Task Should_update_employee_info_for_a_company_sucessfully()
+        {
+            // given
+            var httpClient = CreateHttpClient();
+            var comp1 = await AddCompany(httpClient, "comp1");
+            var employee = await AddEmployee(httpClient, "Yanxi", 1, comp1.Id);
+            employee.Salary = 2;
+            var requestBody = CreateRequestBody(employee);
+
+            // when
+            var response = await httpClient.PutAsync($"/companies/{comp1.Id}/employees/{employee.Id}", requestBody);
+
+            // then
+            response.EnsureSuccessStatusCode();
+            var updatedEmployee = await DeserializeResponse<Employee>(response);
+            Assert.Equal(employee.Salary, updatedEmployee.Salary);
+        }
     }
 }
