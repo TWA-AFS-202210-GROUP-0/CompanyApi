@@ -42,6 +42,20 @@ namespace CompanyApi.Controllers
             return Ok(currentEmployee);
         }
 
+        [HttpDelete("{name}")]
+
+        public ActionResult<Employee> DeleteEmployeeByName(string name)
+        {
+            var currentEmployee = employees.Find(_ => _.Name == name);
+            if (currentEmployee == null)
+            {
+                return NotFound();
+            }
+
+            employees.Remove(currentEmployee);
+            return Ok(currentEmployee);
+        }
+
         [HttpDelete]
         public void DeleteAllPets()
         {
