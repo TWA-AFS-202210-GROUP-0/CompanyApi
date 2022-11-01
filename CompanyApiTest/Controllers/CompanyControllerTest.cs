@@ -13,7 +13,9 @@ namespace CompanyApiTest.Controllers
         public HttpClient CreateHttpClient()
         {
             var application = new WebApplicationFactory<Program>();
-            return application.CreateClient();
+            var httpClient = application.CreateClient();
+            httpClient.DeleteAsync("/companies");
+            return httpClient;
         }
 
         public StringContent CreateRequestBody(object obj)
@@ -79,6 +81,25 @@ namespace CompanyApiTest.Controllers
             List<Company> companies = await DeserializeResponse<List<Company>>(response);
             Assert.Single(companies);
             Assert.Equal(company.Name, companies[0].Name);
+        }
+
+        [Fact]
+        public async Task Should_get_existing_company()
+        {
+            // given
+            var httpClient = CreateHttpClient();
+            var company = new Company("Mengyao");
+            var requestBody = CreateRequestBody(company);
+            var addedResponse = await httpClient.PostAsync("/companies", requestBody);
+            Company createdCompany = await DeserializeResponse<Company>(addedResponse);
+
+            // when
+            var response = await httpClient.GetAsync($"/companies/{createdCompany.Id}");
+
+            // then
+            response.EnsureSuccessStatusCode();
+            Company gotCompany = await DeserializeResponse<Company>(response);
+            Assert.Equal(gotCompany.Name, company.Name);
         }
     }
 }

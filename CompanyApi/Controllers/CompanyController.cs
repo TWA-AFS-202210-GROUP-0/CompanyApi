@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace CompanyApi.Controllers
 {
@@ -24,6 +25,19 @@ namespace CompanyApi.Controllers
         public ActionResult<List<Company>> GetCompanies()
         {
             return companies;
+        }
+
+        [HttpDelete]
+        public void DeleteAllCompanies()
+        {
+            companies.Clear();
+        }
+
+        [HttpGet("{id}")]
+        public ActionResult<Company> GetCompany([FromRoute] string id)
+        {
+            var company = companies.FirstOrDefault(comp => comp.Id.Equals(id));
+            return company == null ? NotFound() : company;
         }
     }
 }
