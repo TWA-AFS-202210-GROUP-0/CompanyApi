@@ -15,24 +15,8 @@ namespace CompanyApiTest.Controllers
         {
             var application = new WebApplicationFactory<Program>();
             var client = application.CreateClient();
-            _ = await client.DeleteAsync("companies/deleteAll");
+            _ = await client.DeleteAsync("companies/deleteAllCompanies");
             return client;
-        }
-
-        [Fact]
-        public async Task Should_return_hello_world_with_default_request()
-        {
-            // given
-            var application = new WebApplicationFactory<Program>();
-            var httpClient = application.CreateClient();
-
-            // when
-            var response = await httpClient.GetAsync("/hello");
-            var responseString = await response.Content.ReadAsStringAsync();
-
-            // then
-            response.EnsureSuccessStatusCode();
-            Assert.Equal("Hello World", responseString);
         }
 
         [Fact]
