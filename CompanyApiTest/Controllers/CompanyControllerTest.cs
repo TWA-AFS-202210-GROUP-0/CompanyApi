@@ -12,7 +12,7 @@ using Xunit;
 
 namespace CompanyApiTest.Controllers
 {
-    public class CompanyControllerTest
+    public class CompanyControllerTest : IDisposable
     {
         [Fact]
         public async Task Should_add_new_company_successfully()
@@ -169,6 +169,13 @@ namespace CompanyApiTest.Controllers
             var companyJson = JsonConvert.SerializeObject(newCompany);
             var postBody = new StringContent(companyJson, Encoding.UTF8, "application/json");
             return postBody;
+        }
+
+        public async void Dispose()
+        {
+            var application = new WebApplicationFactory<Program>();
+            var httpClient = application.CreateClient();
+            await httpClient.DeleteAsync("/companies");
         }
     }
 }
