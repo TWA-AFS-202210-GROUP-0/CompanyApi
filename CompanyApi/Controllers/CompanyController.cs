@@ -128,6 +128,22 @@ namespace CompanyApi.Controllers
             return Ok(companyByFind.Employees.Select(e => e.ToDto()).ToList());
         }
 
+        [HttpGet("{companyId}/employees/{employeeId}")]
+        public ActionResult<List<EmployeeDto>> GetEmployees([FromRoute] string companyId, [FromRoute] string employeeId)
+        {
+            var companyByFind = companies.Find(e => e.CompanyId == companyId);
+            if (companyByFind != null)
+            {
+                var employeebyFind = companyByFind.Employees.Find(e => e.EmployeeId == employeeId);
+                if (employeebyFind != null)
+                {
+                    return Ok(employeebyFind.ToDto());
+                }
+            }
+
+            return new NotFoundResult();
+        }
+
         [HttpPatch("{companyId}/employees/{employeeId}")]
         public ActionResult<CompanyDto> UpdateEmployeeInformation([FromRoute] string companyId,
             [FromRoute] string employeeId, [FromBody] EmployeeDto employeeDto)

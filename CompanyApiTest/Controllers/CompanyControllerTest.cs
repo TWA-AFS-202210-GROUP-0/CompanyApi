@@ -255,11 +255,14 @@ namespace CompanyApiTest.Controllers
             var createdCompanyResult = await CreateCompanyForTest(httpClient);
             var meng = await CreateEmployeeForTest(httpClient, createdCompanyResult, "Meng");
             var deleteResponse = await httpClient.DeleteAsync($"companies/{createdCompanyResult.CompanyId}/employees/{meng.EmployeeId}");
+            var getResponse =
+                await httpClient.GetAsync($"companies/{createdCompanyResult.CompanyId}/employees/{meng.EmployeeId}");
             //Then
             deleteResponse.EnsureSuccessStatusCode();
             var responeAsStringAsync = await deleteResponse.Content.ReadAsStringAsync();
             Assert.Equal(HttpStatusCode.OK, deleteResponse.StatusCode);
             Assert.Equal("Employee removed", responeAsStringAsync);
+            Assert.Equal(HttpStatusCode.NotFound, getResponse.StatusCode);
         }
 
         [Fact]
