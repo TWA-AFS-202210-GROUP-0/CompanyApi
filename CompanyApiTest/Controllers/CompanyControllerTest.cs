@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -10,15 +11,24 @@ using Xunit;
 
 namespace CompanyApiTest.Controllers
 {
-    public class CompanyControllerTest
+    public class CompanyControllerTest : IDisposable
     {
+        private readonly HttpClient httpClient;
+        public CompanyControllerTest()
+        {
+            var application = new WebApplicationFactory<Program>();
+            httpClient = application.CreateClient();
+        }
+
+        public void Dispose()
+        {
+            httpClient.DeleteAsync("/companies");
+        }
+
         [Fact]
         public async void Should_add_new_company_successfully()
         {
             // given
-            var application = new WebApplicationFactory<Program>();
-            var httpClient = application.CreateClient();
-            await httpClient.DeleteAsync("/companies");
             var newCompany = new Company(name: "SLB");
             StringContent postBody = BuildRequestBody(newCompany);
 
@@ -27,8 +37,7 @@ namespace CompanyApiTest.Controllers
 
             // then
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-            var responseBody = await response.Content.ReadAsStringAsync();
-            var createdCompany = JsonConvert.DeserializeObject<Company>(responseBody);
+            var createdCompany = await DeserializeResponse<Company>(response);
             Assert.Equal("SLB", createdCompany.Name);
             Assert.NotEmpty(createdCompany.CompanyID);
         }
@@ -52,8 +61,7 @@ namespace CompanyApiTest.Controllers
 
             // then
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var responseBody = await response.Content.ReadAsStringAsync();
-            var companiesList = JsonConvert.DeserializeObject<List<Company>>(responseBody);
+            var companiesList = await DeserializeResponse<List<Company>>(response);
             Assert.Equal(company1.Name, companiesList[0].Name);
             Assert.Equal(company2.Name, companiesList[1].Name);
         }
@@ -93,8 +101,7 @@ namespace CompanyApiTest.Controllers
 
             // then
             Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
-            var responseBody = await getResponse.Content.ReadAsStringAsync();
-            var getCompany = JsonConvert.DeserializeObject<Company>(responseBody);
+            var getCompany = await DeserializeResponse<Company>(getResponse);
             Assert.Equal("SLB", getCompany.Name);
         }
 
@@ -122,8 +129,7 @@ namespace CompanyApiTest.Controllers
 
             // then
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var responseBody = await response.Content.ReadAsStringAsync();
-            var companiesList = JsonConvert.DeserializeObject<List<Company>>(responseBody);
+            var companiesList = await DeserializeResponse<List<Company>>(response);
             Assert.Equal(company2.Name, companiesList[0].Name);
         }
 
@@ -163,8 +169,7 @@ namespace CompanyApiTest.Controllers
             var newCompany = new Company(name: "SLB");
             StringContent postBody = BuildRequestBody(newCompany);
             var response = await httpClient.PostAsync("/companies", postBody);
-            var responseBody = await response.Content.ReadAsStringAsync();
-            var createdCompany = JsonConvert.DeserializeObject<Company>(responseBody);
+            var createdCompany = await DeserializeResponse<Company>(response);
             createdCompany.Name = "Schlumberger";
             StringContent updateBody = BuildRequestBody(createdCompany);
 
@@ -173,8 +178,7 @@ namespace CompanyApiTest.Controllers
 
             // then
             Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
-            var updatedBody = await updateResponse.Content.ReadAsStringAsync();
-            var updatedCompany = JsonConvert.DeserializeObject<Company>(updatedBody);
+            var updatedCompany = await DeserializeResponse<Company>(updateResponse);
             Assert.Equal("Schlumberger", updatedCompany.Name);
         }
 
@@ -188,10 +192,9 @@ namespace CompanyApiTest.Controllers
             var newCompany = new Company(name: "SLB");
             StringContent postBody = BuildRequestBody(newCompany);
             var createdResponse = await httpClient.PostAsync("/companies", postBody);
-            var createdBody = await createdResponse.Content.ReadAsStringAsync();
-            var createdCompany = JsonConvert.DeserializeObject<Company>(createdBody);
+            var createdCompany = await DeserializeResponse<Company>(createdResponse);
             var employee = new Employee(name: "Li Ming", salary: 10000);
-            StringContent employeeBody = BuildRequestBodyForEmployee(employee);
+            StringContent employeeBody = BuildRequestBody(employee);
 
             //when
             var response = await httpClient.PostAsync($"/companies/{createdCompany.CompanyID}/employees",
@@ -200,8 +203,7 @@ namespace CompanyApiTest.Controllers
             //then
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var updateResponse = await httpClient.GetAsync("/companies");
-            var updatedBody = await updateResponse.Content.ReadAsStringAsync();
-            var updatedCompanies = JsonConvert.DeserializeObject<List<Company>>(updatedBody);
+            var updatedCompanies = await DeserializeResponse<List<Company>>(updateResponse);
             Assert.Equal(employee.Name, updatedCompanies[0].Employees[0].Name);
         }
 
@@ -215,14 +217,13 @@ namespace CompanyApiTest.Controllers
             var newCompany = new Company(name: "SLB");
             StringContent postBody = BuildRequestBody(newCompany);
             var createdResponse = await httpClient.PostAsync("/companies", postBody);
-            var createdBody = await createdResponse.Content.ReadAsStringAsync();
-            var createdCompany = JsonConvert.DeserializeObject<Company>(createdBody);
+            var createdCompany = await DeserializeResponse<Company>(createdResponse);
             var employee1 = new Employee(name: "Li Ming", salary: 10000);
-            StringContent employeeBody1 = BuildRequestBodyForEmployee(employee1);
+            StringContent employeeBody1 = BuildRequestBody(employee1);
             await httpClient.PostAsync($"/companies/{createdCompany.CompanyID}/employees",
                 employeeBody1);
             var employee2 = new Employee(name: "Li Hua", salary: 10000);
-            StringContent employeeBody2 = BuildRequestBodyForEmployee(employee2);
+            StringContent employeeBody2 = BuildRequestBody(employee2);
             await httpClient.PostAsync($"/companies/{createdCompany.CompanyID}/employees",
                 employeeBody2);
 
@@ -231,8 +232,7 @@ namespace CompanyApiTest.Controllers
 
             //then
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var responseBody = await response.Content.ReadAsStringAsync();
-            var employees = JsonConvert.DeserializeObject<List<Employee>>(responseBody);
+            var employees = await DeserializeResponse<List<Employee>>(response);
             Assert.Equal(2, employees.Count);
         }
 
@@ -249,21 +249,19 @@ namespace CompanyApiTest.Controllers
             var createdBody = await createdResponse.Content.ReadAsStringAsync();
             var createdCompany = JsonConvert.DeserializeObject<Company>(createdBody);
             var employee = new Employee(name: "Li Ming", salary: 10000);
-            StringContent employeeBody = BuildRequestBodyForEmployee(employee);
+            StringContent employeeBody = BuildRequestBody(employee);
             var response = await httpClient.PostAsync($"/companies/{createdCompany.CompanyID}/employees",
                 employeeBody);
-            var responseBody = await response.Content.ReadAsStringAsync();
-            var updateEmployee = JsonConvert.DeserializeObject<Employee>(responseBody);
+            var updateEmployee = await DeserializeResponse<Employee>(response);
             updateEmployee.Salary = 20000;
-            StringContent updateBody = BuildRequestBodyForEmployee(updateEmployee);
+            StringContent updateBody = BuildRequestBody(updateEmployee);
 
             //when
             var updatedResponse = await httpClient.PutAsync($"/companies/{createdCompany.CompanyID}/employees/{updateEmployee.EmployeeID}", updateBody);
 
             //then
             Assert.Equal(HttpStatusCode.OK, updatedResponse.StatusCode);
-            var updatedBody = await updatedResponse.Content.ReadAsStringAsync();
-            var updatedEmployee = JsonConvert.DeserializeObject<Employee>(updatedBody);
+            var updatedEmployee = await DeserializeResponse<Employee>(updatedResponse);
             Assert.Equal(updateEmployee.Salary, updatedEmployee.Salary);
         }
 
@@ -277,21 +275,18 @@ namespace CompanyApiTest.Controllers
             var newCompany = new Company(name: "SLB");
             StringContent postBody = BuildRequestBody(newCompany);
             var createdResponse = await httpClient.PostAsync("/companies", postBody);
-            var createdBody = await createdResponse.Content.ReadAsStringAsync();
-            var createdCompany = JsonConvert.DeserializeObject<Company>(createdBody);
+            var createdCompany = await DeserializeResponse<Company>(createdResponse);
             var employee = new Employee(name: "Li Ming", salary: 10000);
-            StringContent employeeBody = BuildRequestBodyForEmployee(employee);
+            StringContent employeeBody = BuildRequestBody(employee);
             var response = await httpClient.PostAsync($"/companies/{createdCompany.CompanyID}/employees",
                 employeeBody);
-            var responseBody = await response.Content.ReadAsStringAsync();
-            var createEmployee = JsonConvert.DeserializeObject<Employee>(responseBody);
+            var createEmployee = await DeserializeResponse<Employee>(response);
             //when
             var deleteResponse = await httpClient.DeleteAsync($"/companies/{createdCompany.CompanyID}/employees/{createEmployee.EmployeeID}");
 
             //then
             Assert.Equal(HttpStatusCode.OK, deleteResponse.StatusCode);
-            var deleteBody = await deleteResponse.Content.ReadAsStringAsync();
-            var newEmployeesList = JsonConvert.DeserializeObject<List<Employee>>(deleteBody);
+            var newEmployeesList = await DeserializeResponse<List<Employee>>(deleteResponse);
             Assert.Equal(0, newEmployeesList.Count);
         }
 
@@ -305,10 +300,9 @@ namespace CompanyApiTest.Controllers
             var newCompany = new Company(name: "SLB");
             StringContent postBody = BuildRequestBody(newCompany);
             var createdResponse = await httpClient.PostAsync("/companies", postBody);
-            var createdBody = await createdResponse.Content.ReadAsStringAsync();
-            var createdCompany = JsonConvert.DeserializeObject<Company>(createdBody);
+            var createdCompany = await DeserializeResponse<Company>(createdResponse);
             var employee = new Employee(name: "Li Ming", salary: 10000);
-            StringContent employeeBody = BuildRequestBodyForEmployee(employee);
+            StringContent employeeBody = BuildRequestBody(employee);
             await httpClient.PostAsync($"/companies/{createdCompany.CompanyID}/employees",
                 employeeBody);
             //when
@@ -318,18 +312,27 @@ namespace CompanyApiTest.Controllers
             Assert.Equal(HttpStatusCode.OK, deleteResponse.StatusCode);
         }
 
-        public static StringContent BuildRequestBody(Company newCompany)
+        private static StringContent BuildRequestBody<T>(T requestObject)
         {
-            var companyJson = JsonConvert.SerializeObject(newCompany);
-            var postBody = new StringContent(companyJson, Encoding.UTF8, "application/json");
-            return postBody;
+            var requestJson = JsonConvert.SerializeObject(requestObject);
+            var requestBody = new StringContent(requestJson, Encoding.UTF8, "application/json");
+            return requestBody;
         }
 
-        public static StringContent BuildRequestBodyForEmployee(Employee employee)
+        private static async Task<T?> DeserializeResponse<T>(HttpResponseMessage response)
         {
-            var employeeJson = JsonConvert.SerializeObject(employee);
-            var postBody = new StringContent(employeeJson, Encoding.UTF8, "application/json");
-            return postBody;
+            if (response.Content != null)
+            {
+                var responseBody = await response.Content.ReadAsStringAsync();
+                var deserializeObject = JsonConvert.DeserializeObject<T>(responseBody);
+
+                return deserializeObject;
+            }
+            else
+            {
+                return default;
+            }
         }
+
     }
 }
